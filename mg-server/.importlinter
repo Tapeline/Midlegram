@@ -1,0 +1,15 @@
+[importlinter]
+root_package = midlegram
+
+[importlinter:contract:layers]
+name=Layered architecture
+type=layers
+containers =
+    midlegram
+layers=
+    bootstrap
+    presentation
+    infrastructure
+    application
+    domain
+exhaustive = true

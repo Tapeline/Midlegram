@@ -1,0 +1,45 @@
+# Cross-platform shell configuration
+# Use PowerShell on Windows (higher precedence than shell setting)
+set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
+# Use sh on Unix-like systems
+set shell := ["sh", "-c"]
+
+
+test $what="all":
+  just __test_{{what}}
+
+__test_all:
+  just __test_unit
+  just __test_integration
+
+__test_unit:
+  uv run pytest tests/unit
+
+__test_integration:
+  uv run pytest tests/integration
+
+
+check $what="all":
+  just __check_{{what}}
+
+__check_all:
+  just __check_types
+  just __check_style
+
+__check_style:
+  just __check_ruff
+  just __check_wps
+
+__check_ruff:
+  uv run ruff check
+
+__check_wps:
+  uv run flake8 src
+
+__check_types:
+  uv run mypy src
+
+
+regen-uvicorn-log-cfg:
+  uv run asgi-monitor uvicorn-log-config --path uvicorn-log-config.json \
+  --level info --json-format --include-trace

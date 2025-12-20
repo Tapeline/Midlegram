@@ -1,0 +1,5 @@
+[flake8]
+per-file-ignores =
+ignore =
+    F401, W503
+    # Covered by ruff

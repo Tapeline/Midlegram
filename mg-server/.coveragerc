@@ -1,0 +1,5 @@
+[run]
+plugins = smart_covdefaults
+
+[smart_covdefaults]
+allow_defensive_code = True
