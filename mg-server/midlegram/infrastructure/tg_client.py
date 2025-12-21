@@ -173,7 +173,7 @@ class TelegramClient(MessengerClient):
         return result.update['chat_ids']
 
     async def get_chat_folders(self) -> list[ChatFolder]:
-        if self._folders:
+        if not self._folders:
             logger.info("Reloading folders")
             ensure_no_error(
                 await wait_tg(
