@@ -206,11 +206,15 @@ class TelegramClient(MessengerClient):
                 last_msg = "(vid) " + last_msg["content"]["caption"]["text"]
             elif last_msg["content"]["@type"] == "messageVoiceNote":
                 last_msg = "(voice)"
+            elif last_msg["content"]["@type"] == "messageAudio":
+                last_msg = "(audio)"
+            else:
+                last_msg = "(unknown)"
         return Chat(
             id=chat_id,
             title=result.update.get("title", "Unknown"),
             unread_count=result.update.get("unread_count", 0),
-            last_msg=str(last_msg)
+            last_msg=last_msg
         )
 
     async def wait_for_messages(self, timeout_s: int) -> list[Message]:
