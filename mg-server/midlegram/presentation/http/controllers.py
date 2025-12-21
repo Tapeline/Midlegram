@@ -34,7 +34,6 @@ class AccountController(Controller):
         phone: str, *,
         interactor: FromDishka[StartAuth]
     ) -> Response[bytes]:
-        breakpoint()
         return ans_ok(serialize_str(await interactor(phone)))
 
     @post("/login/code", security=security_defs)
@@ -44,7 +43,6 @@ class AccountController(Controller):
         code: str, *,
         interactor: FromDishka[AuthWithCode]
     ) -> Response[bytes]:
-        breakpoint()
         verdict = await interactor(code)
         code = {
             AuthCodeVerdict.OK: 0,
@@ -60,7 +58,6 @@ class AccountController(Controller):
         password: str, *,
         interactor: FromDishka[AuthWith2FA]
     ) -> Response[bytes]:
-        breakpoint()
         await interactor(password)
         return ans_ok(b"")
 
@@ -76,9 +73,7 @@ class ChatController(Controller):
         *,
         interactor: FromDishka[ListChatFolders]
     ) -> Response[bytes]:
-        breakpoint()
         folders = await interactor()
-        breakpoint()
         return ans_ok(serialize_list(serialize_chat_folder, folders))
 
     @get("/folders/{folder_id:int}/chats")
