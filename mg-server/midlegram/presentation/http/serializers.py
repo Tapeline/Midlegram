@@ -20,7 +20,8 @@ def ans_err(err_code: str) -> Response[bytes]:
 
 
 def serialize_str(text: str) -> bytes:
-    return struct.pack(">h", len(text)) + text.encode("utf8")
+    encoded = text.encode("utf8")
+    return struct.pack(">h", len(encoded)) + encoded
 
 
 def serialize_chat_folder(folder: ChatFolder) -> bytes:
