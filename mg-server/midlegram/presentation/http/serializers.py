@@ -7,14 +7,14 @@ from midlegram.domain.entities import Chat, ChatFolder, Message, MessageType
 
 def ans_ok(data: bytes) -> Response[bytes]:
     return Response(
-        b"00" + data,
+        b"\x00" + data,
         headers={"Content-Type": "application/octet-stream"},
     )
 
 
 def ans_err(err_code: str) -> Response[bytes]:
     return Response(
-        b"FF" + serialize_str(err_code),
+        b"\xFF" + serialize_str(err_code),
         headers={"Content-Type": "application/octet-stream"},
     )
 
