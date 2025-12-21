@@ -72,9 +72,9 @@ class TelegramClient(MessengerClient):
     def init(self) -> None:
         self.tg._set_initial_params()
         self.tg.phone = None
-        self.tg.call_method('getOption', {'name': 'version'})
         self.tg.add_update_handler("updateChatFolders", self._update_folders)
         self.tg.add_update_handler('updateNewMessage', self._put_new_msg)
+        self.tg.call_method('getOption', {'name': 'version'}).wait()
 
     def _put_new_msg(self, update: dict[str, Any]) -> None:
         logger.debug("Got a message", msg=update["message"])
@@ -153,7 +153,8 @@ class TelegramClient(MessengerClient):
                 self.tg.call_method(
                     'loadChats', {
                         'chat_list': chat_list_query,
-                        # 'limit': limit
+                        'limit': pagination.limit,
+                        'offset': pagination.offset,
                     }
                 )
             )
@@ -163,7 +164,8 @@ class TelegramClient(MessengerClient):
                 self.tg.call_method(
                     'getChats', {
                         'chat_list': chat_list_query,
-                        # 'limit': limit
+                        'limit': pagination.limit,
+                        'offset': pagination.offset,
                     }
                 )
             )
@@ -208,7 +210,7 @@ class TelegramClient(MessengerClient):
             id=chat_id,
             title=result.update.get("title", "Unknown"),
             unread_count=result.update.get("unread_count", 0),
-            last_msg=last_msg
+            last_msg=str(last_msg)
         )
 
     async def wait_for_messages(self, timeout_s: int) -> list[Message]:

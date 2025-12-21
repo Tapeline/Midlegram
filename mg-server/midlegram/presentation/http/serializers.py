@@ -42,7 +42,7 @@ def serialize_message(message: Message) -> bytes:
         _MSG_TYPE_MAP[message.type],
         int(message.date.timestamp()),
         message.sender.id,
-    ) + serialize_str(message.sender.name) + serialize_str(message.text)
+    ) + serialize_str(message.text)
 
 
 def serialize_chat(chat: Chat) -> bytes:

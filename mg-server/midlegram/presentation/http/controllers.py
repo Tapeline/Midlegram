@@ -78,15 +78,16 @@ class ChatController(Controller):
     ) -> Response[bytes]:
         breakpoint()
         folders = await interactor()
+        breakpoint()
         return ans_ok(serialize_list(serialize_chat_folder, folders))
 
     @get("/folders/{folder_id:int}/chats")
     @inject
     async def get_chats(
-        self, folder_id: ChatFolderId, *,
+        self, folder_id: ChatFolderId, limit: int = 10, offset: int = 0, *,
         interactor: FromDishka[ListChats]
     ) -> Response[bytes]:
-        chats = await interactor(folder_id, Pagination(0))
+        chats = await interactor(folder_id, Pagination(limit, offset))
         return ans_ok(serialize_list(serialize_chat, chats))
 
     @get("/chats/{chat_id:int}/messages")
