@@ -1,4 +1,5 @@
 from asyncio import Queue
+from contextlib import suppress
 from dataclasses import dataclass, field
 import asyncio
 from datetime import datetime
@@ -148,15 +149,13 @@ class TelegramClient(MessengerClient):
             '@type': 'chatListFolder',
             'chat_folder_id': folder_id
         } if folder_id > 0 else {'@type': 'chatListMain'}
-        ensure_no_error(
-            await wait_tg(
-                self.tg.call_method(
-                    'loadChats', {
-                        'chat_list': chat_list_query,
-                        'limit': pagination.limit,
-                        'offset': pagination.offset,
-                    }
-                )
+        await wait_tg(
+            self.tg.call_method(
+                'loadChats', {
+                    'chat_list': chat_list_query,
+                    'limit': pagination.limit,
+                    'offset': pagination.offset,
+                }
             )
         )
         result = ensure_no_error(
