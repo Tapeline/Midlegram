@@ -1,6 +1,9 @@
 def adapt_string(text: str) -> str:
     chars = [c.encode("utf-8") for c in text]
-    return "".join(filter(_is_valid_char_for_java, chars))
+    return "".join(
+        [c.decode("utf-8") for c in chars if _is_valid_char_for_java(c)]
+    )
+
 
 def _is_valid_char_for_java(c: bytes) -> bool:
     if c[0] <= 127:
