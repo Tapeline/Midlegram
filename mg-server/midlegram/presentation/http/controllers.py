@@ -133,7 +133,7 @@ class ChatController(Controller):
     @inject
     async def send_message(
         self, chat_id: ChatId,
-        data: Annotated[str, Body(media_type="text/plain")], *,
+        data: str, *,
         interactor: FromDishka[SendTextMessage],
     ) -> Response[bytes]:
         await interactor(chat_id, data)
