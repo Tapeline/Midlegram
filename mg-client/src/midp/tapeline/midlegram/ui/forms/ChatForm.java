@@ -44,7 +44,6 @@ public class ChatForm extends UIForm {
 		msgInput.setLayout(Item.LAYOUT_EXPAND);
 		msgInput.setItemCommandListener(this);
 		msgInput.setDefaultCommand(send);
-		addCommand(send);
 		addCommand(reload);
 		addBackButton();
 		anchors.addElement(new Long(0));
