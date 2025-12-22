@@ -127,7 +127,7 @@ class ChatController(Controller):
     @post("/connect")
     @inject
     async def notify_client_connected(
-        self, *, interactor: ConnectClient
+        self, *, interactor: FromDishka[ConnectClient]
     ) -> Response[bytes]:
         await interactor()
         return ans_ok(b"")
