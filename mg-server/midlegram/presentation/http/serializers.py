@@ -3,6 +3,7 @@ import struct
 from litestar import Response
 
 from midlegram.domain.entities import Chat, ChatFolder, Message, MessageType
+from midlegram.domain.text_adapter import adapt_string
 
 
 def ans_ok(data: bytes) -> Response[bytes]:
@@ -20,6 +21,7 @@ def ans_err(err_code: str) -> Response[bytes]:
 
 
 def serialize_str(text: str) -> bytes:
+    text = adapt_string(text)
     encoded = text.encode("utf8")
     return struct.pack(">h", len(encoded)) + encoded
 
