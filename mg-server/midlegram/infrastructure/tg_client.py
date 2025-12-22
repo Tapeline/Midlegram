@@ -109,11 +109,8 @@ class TelegramClient(MessengerClient):
 
     async def connect_client(self) -> None:
         self._chats.clear()
-        #all_chats = ensure_no_error(
-        #    await wait_tg(self.tg.get_chats(limit=_MAX_CHATS))
-        #).update["chat_ids"]
         await asyncio.sleep(2)
-        load_req = ensure_no_error(await wait_tg(
+        ensure_no_error(await wait_tg(
             self.tg.call_method(
                 'loadChats', {
                     'chat_list': {'@type': 'chatListMain'},
@@ -121,8 +118,10 @@ class TelegramClient(MessengerClient):
                 }
             )
         ))
+        all_chats = ensure_no_error(
+            await wait_tg(self.tg.get_chats(limit=_MAX_CHATS))
+        ).update["chat_ids"]
         breakpoint()
-        all_chats = load_req.update["chat_ids"]
         self._chats_in_folders[ChatFolderId(0)] = list(
             await asyncio.gather(*map(self._load_chat, all_chats))
         )
