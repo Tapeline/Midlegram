@@ -85,7 +85,7 @@ class TelegramClient(MessengerClient):
         self.tg.call_method('getOption', {'name': 'version'}).wait()
 
     def _put_new_msg(self, update: dict[str, Any]) -> None:
-        logger.debug("Got a message", msg=update["message"])
+        #logger.debug("Got a message", msg=update["message"])
         for q in self._listeners:
             q.put_nowait(_parse_message(update["message"]))
         self._loop.call_soon_threadsafe(
@@ -109,10 +109,19 @@ class TelegramClient(MessengerClient):
 
     async def connect_client(self) -> None:
         self._chats.clear()
-        all_chats = ensure_no_error(
-            await wait_tg(self.tg.get_chats(limit=_MAX_CHATS))
-        ).update["chat_ids"]
+        #all_chats = ensure_no_error(
+        #    await wait_tg(self.tg.get_chats(limit=_MAX_CHATS))
+        #).update["chat_ids"]
+        load_req = ensure_no_error(await wait_tg(
+            self.tg.call_method(
+                'loadChats', {
+                    'chat_list': {'@type': 'chatListMain'},
+                    'limit': _MAX_CHATS,
+                }
+            )
+        ))
         breakpoint()
+        all_chats = load_req.update["chat_ids"]
         self._chats_in_folders[ChatFolderId(0)] = list(
             await asyncio.gather(*map(self._load_chat, all_chats))
         )
