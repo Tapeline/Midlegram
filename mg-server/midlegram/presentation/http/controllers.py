@@ -25,7 +25,7 @@ from midlegram.presentation.http.security import security_defs
 from midlegram.presentation.http.serializers import (
     ans_ok,
     serialize_chat, serialize_chat_folder, serialize_i64, serialize_list,
-    serialize_message, serialize_str,
+    serialize_message, serialize_message_with_sender, serialize_str,
 )
 
 
@@ -115,7 +115,7 @@ class ChatController(Controller):
         interactor: FromDishka[GetMessages]
     ) -> Response[bytes]:
         messages = await interactor(chat_id, from_msg, lim)
-        return ans_ok(serialize_list(serialize_message, messages))
+        return ans_ok(serialize_list(serialize_message_with_sender, messages))
 
     @post("/chats/{chat_id:int}/read")
     @inject

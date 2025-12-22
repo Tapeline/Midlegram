@@ -8,7 +8,7 @@ from midlegram.domain.entities import (
     ChatFolder,
     ChatFolderId,
     ChatId,
-    Message, MessageId,
+    Message, MessageId, User, UserId,
 )
 
 SessionToken = NewType("SessionToken", str)
@@ -78,6 +78,10 @@ class MessengerClient(Protocol):
 
     @abstractmethod
     async def send_text(self, chat_id: ChatId, text: str) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_user(self, user_id: UserId) -> User:
         raise NotImplementedError
 
     @abstractmethod

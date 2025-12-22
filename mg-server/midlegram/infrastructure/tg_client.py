@@ -24,7 +24,7 @@ from midlegram.domain.entities import (
     ChatFolder,
     ChatFolderId, ChatId,
     Message,
-    MessageId, MessageType, Sender,
+    MessageId, MessageType, Sender, User, UserId,
 )
 from midlegram.infrastructure.client_store import ClientFactory
 
@@ -314,6 +314,22 @@ class TelegramClient(MessengerClient):
         self.tg.call_method('logOut', {})
         self.tg.stop()
 
+    async def get_user(self, user_id: UserId) -> User:
+        user = ensure_no_error(await wait_tg(self.tg.get_user(user_id)))
+        handle = "?"
+        name = f"User {user_id}"
+        if user.update:
+            usernames = user.update.get('usernames', {})
+            handle = usernames.get('active_usernames', ['?'])[0]
+            first = user.update.get('first_name', '')
+            last = user.update.get('last_name', '')
+            name = f"{first} {last}".strip()
+        return User(
+            id=user_id,
+            name=name,
+            handle=handle,
+        )
+
 
 def _parse_message(msg: dict[str, Any]) -> Message:
     content = msg["content"]
@@ -340,7 +356,7 @@ def _parse_message(msg: dict[str, Any]) -> Message:
         sender_id = msg['sender_id']['user_id']
     return Message(
         id=msg["id"],
-        sender=Sender(id=sender_id, name=str(sender_id)),
+        sender_id=sender_id,
         date=datetime.fromtimestamp(msg['date']),
         type=msg_type,
         text=body_text,

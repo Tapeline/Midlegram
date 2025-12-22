@@ -3,7 +3,13 @@ from locale import strcoll
 
 from litestar import Response
 
-from midlegram.domain.entities import Chat, ChatFolder, Message, MessageType
+from midlegram.domain.entities import (
+    Chat,
+    ChatFolder,
+    Message,
+    MessageType,
+    MessageWithSender,
+)
 from midlegram.domain.text_adapter import adapt_string
 
 
@@ -46,8 +52,20 @@ def serialize_message(message: Message) -> bytes:
         message.id,
         _MSG_TYPE_MAP[message.type],
         int(message.date.timestamp()),
-        message.sender.id,
+        message.sender_id,
     ) + serialize_str(message.text)
+
+
+def serialize_message_with_sender(message: MessageWithSender) -> bytes:
+    return struct.pack(
+        ">qbiq",
+        message.id,
+        _MSG_TYPE_MAP[message.type],
+        int(message.date.timestamp()),
+        message.sender.id,
+    ) + serialize_str(message.sender.name) + \
+        serialize_str(message.sender.handle) + \
+        serialize_str(message.text)
 
 
 def serialize_chat(chat: Chat) -> bytes:
@@ -55,10 +73,10 @@ def serialize_chat(chat: Chat) -> bytes:
         struct.pack(">q", chat.id)
         + serialize_str(chat.title)
         + struct.pack(
-            ">i?",
-            chat.unread_count,
-            chat.last_msg is not None,
-        )
+        ">i?",
+        chat.unread_count,
+        chat.last_msg is not None,
+    )
         + (serialize_str(chat.last_msg) if chat.last_msg is not None else b'')
     )
 

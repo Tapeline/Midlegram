@@ -29,10 +29,11 @@ MediaId = NewType("MediaId", int)
 UserId = NewType("UserId", int)
 
 
-@dto
-class Sender:
+@entity
+class User:
     id: UserId
     name: str
+    handle: str
 
 
 class MessageType(StrEnum):
@@ -47,7 +48,27 @@ class MessageType(StrEnum):
 class Message:
     id: MessageId
     type: MessageType
-    sender: Sender
+    sender_id: UserId
+    date: datetime
+    text: str
+    linked_media: list[MediaId]
+
+    def with_sender(self, user: User) -> "MessageWithSender":
+        return MessageWithSender(
+            id=self.id,
+            type=self.type,
+            sender=user,
+            date=self.date,
+            text=self.text,
+            linked_media=self.linked_media,
+        )
+
+
+@entity
+class MessageWithSender:
+    id: MessageId
+    type: MessageType
+    sender: User
     date: datetime
     text: str
     linked_media: list[MediaId]
