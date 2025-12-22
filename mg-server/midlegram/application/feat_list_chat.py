@@ -4,7 +4,7 @@ from midlegram.application.client import ClientStore
 from midlegram.application.pagination import Pagination
 from midlegram.application.session import SessionProvider
 from midlegram.common import dto, interactor
-from midlegram.domain.entities import Chat, ChatFolder, ChatFolderId
+from midlegram.domain.entities import Chat, ChatFolder, ChatFolderId, ChatId
 
 
 @interactor
@@ -31,3 +31,16 @@ class ListChatFolders:
     async def __call__(self) -> list[ChatFolder]:
         tg = await self.store.get_client(self.session.get_token())
         return await tg.get_chat_folders()
+
+
+@interactor
+class GetChat:
+    store: ClientStore
+    session: SessionProvider
+
+    async def __call__(
+        self,
+        chat_id: ChatId
+    ) -> Chat:
+        tg = await self.store.get_client(self.session.get_token())
+        return await tg.get_chat(chat_id)

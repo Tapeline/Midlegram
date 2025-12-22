@@ -4,7 +4,11 @@ from litestar import Request
 
 from midlegram.application.client import ClientStore
 from midlegram.application.feat_connect import ConnectClient
-from midlegram.application.feat_list_chat import ListChatFolders, ListChats
+from midlegram.application.feat_list_chat import (
+    GetChat,
+    ListChatFolders,
+    ListChats,
+)
 from midlegram.application.feat_login import (
     AuthWith2FA,
     AuthWithCode,
@@ -38,6 +42,7 @@ class TgDIProvider(Provider):
         MarkRead,
         WaitForNewMessages,
         ConnectClient,
+        GetChat,
         scope=Scope.REQUEST,
     )
 

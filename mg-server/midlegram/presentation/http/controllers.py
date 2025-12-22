@@ -6,7 +6,11 @@ from litestar import Controller, Response, get, post
 
 from midlegram.application.client import AuthCodeVerdict
 from midlegram.application.feat_connect import ConnectClient
-from midlegram.application.feat_list_chat import ListChatFolders, ListChats
+from midlegram.application.feat_list_chat import (
+    GetChat,
+    ListChatFolders,
+    ListChats,
+)
 from midlegram.application.feat_login import (
     AuthWith2FA,
     AuthWithCode,
@@ -85,6 +89,15 @@ class ChatController(Controller):
     ) -> Response[bytes]:
         chats = await interactor(folder_id, Pagination(limit, offset))
         return ans_ok(serialize_list(serialize_chat, chats))
+
+    @get("/chats/{chat_id:int}")
+    @inject
+    async def get_chat(
+        self, chat_id: ChatId, *,
+        interactor: FromDishka[GetChat]
+    ) -> Response[bytes]:
+        chat = await interactor(chat_id)
+        return ans_ok(serialize_chat(chat))
 
     @get("/chats/{chat_id:int}/messages")
     @inject
