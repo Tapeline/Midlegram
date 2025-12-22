@@ -24,7 +24,7 @@ from midlegram.domain.entities import (
     ChatFolder,
     ChatFolderId, ChatId,
     Message,
-    MessageId, MessageType, Sender, User, UserId,
+    MessageId, MessageType, User, UserId,
 )
 from midlegram.infrastructure.client_store import ClientFactory
 
