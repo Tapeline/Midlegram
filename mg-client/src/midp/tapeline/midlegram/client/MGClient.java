@@ -2,6 +2,7 @@ package midp.tapeline.midlegram.client;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Vector;
 
@@ -165,6 +166,29 @@ public class MGClient {
 			return des.readMessageList();
 		} finally { 
 			if (dis != null) dis.close(); 
+			if (conn != null) conn.close();
+		}
+	}
+	
+	public void sendTextMessage(long chatId, String message) throws IOException {
+		HttpConnection conn = null;
+		DataInputStream dis = null;
+		DataOutputStream dos = null;
+		try {
+			conn = openSessionHttp("POST", "/api/chats/" + chatId + "/send/text");
+			byte[] bytes = message.getBytes();
+			conn.setRequestProperty("Content-Length", "" + bytes.length);
+			conn.setRequestProperty("Content-Type", "text/plain");
+			dos = conn.openDataOutputStream();
+			dos.write(message.getBytes());
+			dos.flush();
+			assertRespOk(conn);
+			dis = conn.openDataInputStream();
+			Deserializer des = new Deserializer(dis);
+			assertOpSuccess(des.readOperationSuccess());
+		} finally { 
+			if (dis != null) dis.close(); 
+			if (dos != null) dos.close(); 
 			if (conn != null) conn.close();
 		}
 	}

@@ -75,4 +75,8 @@ public class Telegram {
 		return client.getMessages(chatId.longValue(), fromMsg, MESSAGE_BATCH);
 	}
 	
+	public void sendTextMessage(long chatId, String message) throws IOException {
+		client.sendTextMessage(chatId, message);
+	}
+	
 }

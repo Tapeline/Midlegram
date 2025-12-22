@@ -1,8 +1,10 @@
 import struct
+from typing import Annotated
 
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
 from litestar import Controller, Response, get, post
+from litestar.params import Body, BodyKwarg
 
 from midlegram.application.client import AuthCodeVerdict
 from midlegram.application.feat_connect import ConnectClient
@@ -128,9 +130,9 @@ class ChatController(Controller):
 
     @post("/chats/{chat_id:int}/send/text")
     @inject
-    async def read_messages(
+    async def send_message(
         self, chat_id: ChatId,
-        text: str, *,
+        text: Annotated[str, Body()], *,
         interactor: FromDishka[SendTextMessage],
     ) -> Response[bytes]:
         await interactor(chat_id, text)
