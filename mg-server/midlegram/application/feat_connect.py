@@ -10,5 +10,5 @@ class ConnectClient:
     session: SessionProvider
 
     async def __call__(self) -> None:
-        tg = await self.store.get_client(self.session.get_token())
-        await tg.client_connected()
+        tg = await self.store.create_client(self.session.get_token())
+        await tg.connect_client()

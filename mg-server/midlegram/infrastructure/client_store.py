@@ -11,7 +11,7 @@ from midlegram.application.client import (
     MessengerClient,
     SessionToken,
 )
-from midlegram.application.exceptions import InvalidToken
+from midlegram.application.exceptions import ClientNotConnected, InvalidToken
 from midlegram.application.session import SessionProvider
 from midlegram.config import Config
 
@@ -36,8 +36,13 @@ class FSClientStore(ClientStore):
         return SessionToken(token)
 
     async def get_client(self, tok: SessionToken) -> MessengerClient:
+        if tok not in self._active_sessions:
+            raise ClientNotConnected
+        return self._active_sessions[tok]
+
+    async def create_client(self, tok: SessionToken) -> MessengerClient:
         if tok in self._active_sessions:
-            return self._active_sessions[tok]
+            return await self.get_client(tok)
         session_path = Path(self.config.storage.sessions_path, tok)
         if not session_path.exists():
             raise InvalidToken

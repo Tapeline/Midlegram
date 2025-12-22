@@ -24,6 +24,10 @@ class NotAuthorized(AppError):
     ...
 
 
+class ClientNotConnected(AppError):
+    ...
+
+
 @dto
 class UnknownClientError(AppError):
     detail: dict[str, Any]

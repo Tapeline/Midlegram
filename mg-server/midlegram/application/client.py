@@ -26,7 +26,7 @@ class MessengerClient(Protocol):
         raise NotImplementedError
 
     @abstractmethod
-    async def client_connected(self) -> None:
+    async def connect_client(self) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -92,6 +92,10 @@ class ClientStore(Protocol):
 
     @abstractmethod
     async def get_client(self, tok: SessionToken) -> MessengerClient:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def create_client(self, tok: SessionToken) -> MessengerClient:
         raise NotImplementedError
 
     @abstractmethod

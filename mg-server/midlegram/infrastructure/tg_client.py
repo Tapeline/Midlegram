@@ -29,6 +29,7 @@ from midlegram.domain.entities import (
 from midlegram.infrastructure.client_store import ClientFactory
 
 logger = getLogger(__name__)
+_MAX_CHATS: int = 1000
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,7 +68,10 @@ class TelegramClient(MessengerClient):
     config: Config
     tg: Telegram
     _listeners: list[Queue[Message]] = field(default_factory=list)
-    _folders: list[dict[str, Any]] = field(default_factory=list)
+    _folders: list[ChatFolder] = field(default_factory=list)
+    _folder_chat_ids: dict[ChatFolderId, list[ChatId]] = field(default_factory=list)
+    _chats_in_folders: dict[ChatFolderId, list[Chat]] = field(default_factory=dict)
+    _chats: dict[ChatId, Chat] = field(default_factory=dict)
     _g_msg_queue: Queue[Message] = field(default_factory=Queue)
     _loop: asyncio.AbstractEventLoop = None
     _foldersUpdated: asyncio.Future = field(default_factory=asyncio.Future)
@@ -96,11 +100,50 @@ class TelegramClient(MessengerClient):
                 self._g_msg_queue.get_nowait()
 
     def _update_folders(self, update: dict[str, Any]) -> None:
-        self._folders = update["chat_folders"]
-        self._foldersUpdated.done()
+        self._folders = [
+            ChatFolder(
+                id=folder["id"],
+                title=folder.get("title", "Folder")
+            ) for folder in update["chat_folders"]
+        ]
 
-    async def client_connected(self) -> None:
-        pass
+    async def connect_client(self) -> None:
+        self._chats.clear()
+        all_chats = ensure_no_error(
+            await wait_tg(self.tg.get_chats(limit=_MAX_CHATS))
+        ).update["chat_ids"]
+        breakpoint()
+        self._chats_in_folders[ChatFolderId(0)] = list(
+            await asyncio.gather(*map(self._load_chat, all_chats))
+        )
+        for chats in self._chats_in_folders.values():
+            for chat in chats:
+                self._chats[chat.id] = chat
+        for folder in self._folders:
+            chat_ids = ensure_no_error(await wait_tg(
+                self.tg.call_method(
+                    'getChats', {
+                        'chat_list': {
+                            '@type': 'chatListFolder',
+                            'chat_folder_id': folder.id
+                        },
+                        'limit': _MAX_CHATS,
+                    }
+                )
+            )).update["chat_ids"]
+            self._folder_chat_ids[folder.id] = chat_ids
+            self._chats_in_folders[folder.id] = [
+                self._chats[chat_id] for chat_id in chat_ids
+            ]
+
+    async def _load_chat(self, chat_id: ChatId) -> Chat:
+        logger.info("Retrieving chat", chat_id=chat_id)
+        result = ensure_no_error(
+            await wait_tg(
+                self.tg.call_method('getChat', {'chat_id': chat_id})
+            )
+        )
+        return _parse_chat(result.update)
 
     async def request_phone_auth(self, phone: str) -> None:
         ensure_no_error(
@@ -158,94 +201,19 @@ class TelegramClient(MessengerClient):
         folder_id: ChatFolderId,
         pagination: Pagination
     ) -> list[ChatId]:
-        logger.info("Reloading chats for folder", folder=folder_id)
-        chat_list_query = {
-            '@type': 'chatListFolder',
-            'chat_folder_id': folder_id
-        } if folder_id > 0 else {'@type': 'chatListMain'}
-        load_req = await wait_tg(self.tg.call_method(
-            'loadChats', {
-                'chat_list': chat_list_query,
-                'limit': pagination.limit
-            }
-        ))
-        if load_req.error:
-            logger.info("Folder not found, warming up Main list...")
-            self._foldersUpdated = asyncio.Future()
-            await wait_tg(
-                self.tg.call_method(
-                    'loadChats',
-                    {'chat_list': {'@type': 'chatListMain'}, 'limit': 1}
-                )
-            )
-            await self._foldersUpdated
-            load_req = await wait_tg(self.tg.call_method(
-                'loadChats', {
-                    'chat_list': chat_list_query,
-                    'limit': pagination.limit
-                }
-            ))
-        ensure_no_error(load_req)
-        result = ensure_no_error(
-            await wait_tg(
-                self.tg.call_method(
-                    'getChats', {
-                        'chat_list': chat_list_query,
-                        'limit': pagination.limit
-                    }
-                )
-            )
-        )
-        return result.update['chat_ids']
+        return self._folder_chat_ids.get(folder_id, [])
 
     async def get_chat_folders(self) -> list[ChatFolder]:
-        if not self._folders:
-            logger.info("Reloading folders")
-            ensure_no_error(
-                await wait_tg(
-                    self.tg.call_method(
-                        'getChats',
-                        {'chat_list': {'@type': 'chatListMain'}, 'limit': 1}
-                    )
-                )
-            )
-        return [
-            ChatFolder(
-                id=folder["id"],
-                title=folder.get("title", "Folder")
-            ) for folder in self._folders
-        ]
+        return self._folders
 
     async def get_chat(self, chat_id: ChatId) -> Chat:
-        logger.info("Retrieving chat", chat_id=chat_id)
-        result = ensure_no_error(
-            await wait_tg(
-                self.tg.call_method('getChat', {'chat_id': chat_id})
-            )
-        )
-        if last_msg := result.update.get("last_message"):
-            if last_msg["content"]["@type"] == "messageText":
-                last_msg = last_msg["content"]["text"]["text"]
-            elif last_msg["content"]["@type"] == "messagePhoto":
-                last_msg = "(img) " + last_msg["content"]["caption"]["text"]
-            elif last_msg["content"]["@type"] == "messageVideo":
-                last_msg = "(vid) " + last_msg["content"]["caption"]["text"]
-            elif last_msg["content"]["@type"] == "messageVoiceNote":
-                last_msg = "(voice)"
-            elif last_msg["content"]["@type"] == "messageAudio":
-                last_msg = "(audio)"
-            else:
-                last_msg = "(unknown)"
-        return Chat(
-            id=chat_id,
-            title=result.update.get("title", "Unknown"),
-            unread_count=result.update.get("unread_count", 0),
-            last_msg=last_msg
-        )
+        return self._chats[chat_id]
 
     async def wait_for_messages(self, timeout_s: int) -> list[Message]:
         try:
-            data = [await asyncio.wait_for(self._g_msg_queue.get(), timeout=timeout_s)]
+            data = [await asyncio.wait_for(
+                self._g_msg_queue.get(), timeout=timeout_s
+            )]
             logger.info("Got something", length=len(data))
             while not self._g_msg_queue.empty():
                 data.append(self._g_msg_queue.get_nowait())
@@ -253,22 +221,6 @@ class TelegramClient(MessengerClient):
         except asyncio.TimeoutError:
             logger.info("Nothing new")
             return []
-        #logger.info("Enqueued for new messages")
-        #q = asyncio.Queue()
-        #self._listeners.append(q)
-        #try:
-        #    data = [await asyncio.wait_for(q.get(), timeout=timeout_s)]
-        #    logger.info("Got something", length=len(data))
-        #    while not q.empty():
-        #        data.append(q.get_nowait())
-        #    return data  # type: ignore
-        #except asyncio.TimeoutError:
-        #    logger.info("Nothing new")
-        #    return []
-        #finally:
-        #    if q in self._listeners:
-        #        self._listeners.remove(q)
-        #return []
 
     async def get_messages(
         self,
@@ -370,4 +322,26 @@ def _parse_message(msg: dict[str, Any]) -> Message:
         type=msg_type,
         text=body_text,
         linked_media=[]
+    )
+
+
+def _parse_chat(update: dict[str, Any]):
+    if last_msg := update.get("last_message"):
+        if last_msg["content"]["@type"] == "messageText":
+            last_msg = last_msg["content"]["text"]["text"]
+        elif last_msg["content"]["@type"] == "messagePhoto":
+            last_msg = "(img) " + last_msg["content"]["caption"]["text"]
+        elif last_msg["content"]["@type"] == "messageVideo":
+            last_msg = "(vid) " + last_msg["content"]["caption"]["text"]
+        elif last_msg["content"]["@type"] == "messageVoiceNote":
+            last_msg = "(voice)"
+        elif last_msg["content"]["@type"] == "messageAudio":
+            last_msg = "(audio)"
+        else:
+            last_msg = "(unknown)"
+    return Chat(
+        id=update["id"],
+        title=update.get("title", "Unknown"),
+        unread_count=update.get("unread_count", 0),
+        last_msg=last_msg
     )
