@@ -6,7 +6,6 @@ from dishka.integrations.litestar import inject
 from litestar import Controller, Request, Response, get, post
 from litestar.enums import RequestEncodingType
 from litestar.params import Body, BodyKwarg
-from pydantic.v1.mypy import error_from_orm
 
 from midlegram.application.client import AuthCodeVerdict
 from midlegram.application.feat_connect import ConnectClient
