@@ -69,7 +69,7 @@ class TelegramClient(MessengerClient):
     tg: Telegram
     _listeners: list[Queue[Message]] = field(default_factory=list)
     _folders: list[ChatFolder] = field(default_factory=list)
-    _folder_chat_ids: dict[ChatFolderId, list[ChatId]] = field(default_factory=list)
+    _folder_chat_ids: dict[ChatFolderId, list[ChatId]] = field(default_factory=dict)
     _chats_in_folders: dict[ChatFolderId, list[Chat]] = field(default_factory=dict)
     _chats: dict[ChatId, Chat] = field(default_factory=dict)
     _g_msg_queue: Queue[Message] = field(default_factory=Queue)
@@ -121,7 +121,6 @@ class TelegramClient(MessengerClient):
         all_chats = ensure_no_error(
             await wait_tg(self.tg.get_chats(limit=_MAX_CHATS))
         ).update["chat_ids"]
-        breakpoint()
         self._chats_in_folders[ChatFolderId(0)] = list(
             await asyncio.gather(*map(self._load_chat, all_chats))
         )
