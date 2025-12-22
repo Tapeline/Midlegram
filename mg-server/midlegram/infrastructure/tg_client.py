@@ -112,6 +112,7 @@ class TelegramClient(MessengerClient):
         #all_chats = ensure_no_error(
         #    await wait_tg(self.tg.get_chats(limit=_MAX_CHATS))
         #).update["chat_ids"]
+        await asyncio.sleep(2)
         load_req = ensure_no_error(await wait_tg(
             self.tg.call_method(
                 'loadChats', {
