@@ -4,6 +4,7 @@ from typing import Annotated
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
 from litestar import Controller, Response, get, post
+from litestar.enums import RequestEncodingType
 from litestar.params import Body, BodyKwarg
 
 from midlegram.application.client import AuthCodeVerdict
@@ -132,7 +133,7 @@ class ChatController(Controller):
     @inject
     async def send_message(
         self, chat_id: ChatId,
-        text: Annotated[str, Body()], *,
+        text: Annotated[str, Body(media_type="text/plain")], *,
         interactor: FromDishka[SendTextMessage],
     ) -> Response[bytes]:
         await interactor(chat_id, text)
