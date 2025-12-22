@@ -8,10 +8,10 @@ def adapt_string(text: str) -> str:
 def _is_valid_char_for_java(c: bytes) -> bool:
     if c[0] <= 127:
         return True
-    if 192 <= c[0] <= 223 and (len(c) < 2 or 128 <= c[1] <= 191):
-        return False
-    if 224 <= c[0] <= 239 and (len(c) < 2 or 128 <= c[1] <= 191):
-        return False
+    if 192 <= c[0] <= 223 and (len(c) == 2 or 128 <= c[1] <= 191):
+        return True
+    if 224 <= c[0] <= 239 and (len(c) == 2 or 128 <= c[1] <= 191):
+        return True
     if c[0] >= 240 or c[0] <= 191:
         return False
-    return True
+    return False
