@@ -3,6 +3,7 @@ from dishka import Provider, Scope, provide, provide_all
 from litestar import Request
 
 from midlegram.application.client import ClientStore
+from midlegram.application.feat_connect import ConnectClient
 from midlegram.application.feat_list_chat import ListChatFolders, ListChats
 from midlegram.application.feat_login import (
     AuthWith2FA,
@@ -36,6 +37,7 @@ class TgDIProvider(Provider):
         SendTextMessage,
         MarkRead,
         WaitForNewMessages,
+        ConnectClient,
         scope=Scope.REQUEST,
     )
 

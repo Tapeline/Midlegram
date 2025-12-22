@@ -26,6 +26,10 @@ class MessengerClient(Protocol):
         raise NotImplementedError
 
     @abstractmethod
+    async def client_connected(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
     async def request_phone_auth(self, phone: str) -> None:
         raise NotImplementedError
 

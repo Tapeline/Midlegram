@@ -5,6 +5,7 @@ from dishka.integrations.litestar import inject
 from litestar import Controller, Response, get, post
 
 from midlegram.application.client import AuthCodeVerdict
+from midlegram.application.feat_connect import ConnectClient
 from midlegram.application.feat_list_chat import ListChatFolders, ListChats
 from midlegram.application.feat_login import (
     AuthWith2FA,
@@ -122,3 +123,11 @@ class ChatController(Controller):
     ) -> Response[bytes]:
         messages = await interactor()
         return ans_ok(serialize_list(serialize_message, messages))
+
+    @post("/connect")
+    @inject
+    async def notify_client_connected(
+        self, *, interactor: ConnectClient
+    ) -> Response[bytes]:
+        await interactor()
+        return ans_ok(b"")

@@ -69,8 +69,11 @@ class TelegramClient(MessengerClient):
     _listeners: list[Queue[Message]] = field(default_factory=list)
     _folders: list[dict[str, Any]] = field(default_factory=list)
     _g_msg_queue: Queue[Message] = field(default_factory=Queue)
+    _loop: asyncio.AbstractEventLoop = None
+    _foldersUpdated: asyncio.Future = field(default_factory=asyncio.Future)
 
     def init(self) -> None:
+        self._loop = asyncio.get_event_loop()
         self.tg._set_initial_params()
         self.tg.phone = None
         self.tg.add_update_handler("updateChatFolders", self._update_folders)
@@ -81,12 +84,23 @@ class TelegramClient(MessengerClient):
         logger.debug("Got a message", msg=update["message"])
         for q in self._listeners:
             q.put_nowait(_parse_message(update["message"]))
-        self._g_msg_queue.put_nowait(_parse_message(update["message"]))
+        self._loop.call_soon_threadsafe(
+            self._handle_msg_in_loop,
+            _parse_message(update["message"])
+        )
+
+    def _handle_msg_in_loop(self, message: Message) -> None:
+        self._g_msg_queue.put_nowait(message)
         while self._g_msg_queue.qsize() > self.config.max_msg_queue_size:
-            self._g_msg_queue.get_nowait()
+            with suppress(asyncio.QueueEmpty):
+                self._g_msg_queue.get_nowait()
 
     def _update_folders(self, update: dict[str, Any]) -> None:
         self._folders = update["chat_folders"]
+        self._foldersUpdated.done()
+
+    async def client_connected(self) -> None:
+        pass
 
     async def request_phone_auth(self, phone: str) -> None:
         ensure_no_error(
@@ -149,22 +163,35 @@ class TelegramClient(MessengerClient):
             '@type': 'chatListFolder',
             'chat_folder_id': folder_id
         } if folder_id > 0 else {'@type': 'chatListMain'}
-        await wait_tg(
-            self.tg.call_method(
+        load_req = await wait_tg(self.tg.call_method(
+            'loadChats', {
+                'chat_list': chat_list_query,
+                'limit': pagination.limit
+            }
+        ))
+        if load_req.error:
+            logger.info("Folder not found, warming up Main list...")
+            self._foldersUpdated = asyncio.Future()
+            await wait_tg(
+                self.tg.call_method(
+                    'loadChats',
+                    {'chat_list': {'@type': 'chatListMain'}, 'limit': 1}
+                )
+            )
+            await self._foldersUpdated
+            load_req = await wait_tg(self.tg.call_method(
                 'loadChats', {
                     'chat_list': chat_list_query,
-                    'limit': pagination.limit,
-                    'offset': pagination.offset,
+                    'limit': pagination.limit
                 }
-            )
-        )
+            ))
+        ensure_no_error(load_req)
         result = ensure_no_error(
             await wait_tg(
                 self.tg.call_method(
                     'getChats', {
                         'chat_list': chat_list_query,
-                        'limit': pagination.limit,
-                        'offset': pagination.offset,
+                        'limit': pagination.limit
                     }
                 )
             )
@@ -321,7 +348,7 @@ def _parse_message(msg: dict[str, Any]) -> Message:
         "messageVideo": MessageType.VIDEO,
         "messageVoiceNote": MessageType.VOICE,
     }.get(
-        content["@type"], MessageType.TEXT
+        content["@type"], MessageType.UNKNOWN
     )
     if msg_type == MessageType.TEXT:
         body_text = content['text']['text']
@@ -332,7 +359,7 @@ def _parse_message(msg: dict[str, Any]) -> Message:
     elif msg_type == MessageType.VOICE:
         body_text = "(voice)"
     else:
-        body_text = "(no text)"
+        body_text = "(unknown)"
     sender_id = 0
     if 'sender_id' in msg and 'user_id' in msg['sender_id']:
         sender_id = msg['sender_id']['user_id']

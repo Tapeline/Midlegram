@@ -40,6 +40,7 @@ class MessageType(StrEnum):
     PHOTO = "photo"
     VIDEO = "video"
     VOICE = "voice"
+    UNKNOWN = "unknown"
 
 
 @entity
