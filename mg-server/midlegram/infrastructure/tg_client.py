@@ -257,6 +257,11 @@ class TelegramClient(MessengerClient):
             from_=from_msg_id,
             lim=limit
         )
+        ensure_no_error(
+            await wait_tg(
+                self.tg.call_method('openChat', {'chat_id': chat_id})
+            )
+        )
         result = ensure_no_error(
             await wait_tg(
                 self.tg.call_method(

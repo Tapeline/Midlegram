@@ -23,7 +23,8 @@ public class MessageItem extends StringItem {
 	ChatForm form;
 	
 	public MessageItem(Message message, ChatForm form) {
-		super(message.authorName, message.text + "\n\t" + StringUtils.dateToString(new Date(message.time)));
+		super(message.authorName, message.text + "\n\t" + 
+					StringUtils.dateToString(new Date(((long) message.time) * 1000)));
 		this.form = form;
 		this.message = message;
 		setLayout(Item.LAYOUT_EXPAND);
