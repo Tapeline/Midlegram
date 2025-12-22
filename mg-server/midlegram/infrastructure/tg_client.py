@@ -29,7 +29,7 @@ from midlegram.domain.entities import (
 from midlegram.infrastructure.client_store import ClientFactory
 
 logger = getLogger(__name__)
-_MAX_CHATS: int = 1000
+_MAX_CHATS: int = 10000
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,8 +69,12 @@ class TelegramClient(MessengerClient):
     tg: Telegram
     _listeners: list[Queue[Message]] = field(default_factory=list)
     _folders: list[ChatFolder] = field(default_factory=list)
-    _folder_chat_ids: dict[ChatFolderId, list[ChatId]] = field(default_factory=dict)
-    _chats_in_folders: dict[ChatFolderId, list[Chat]] = field(default_factory=dict)
+    _folder_chat_ids: dict[ChatFolderId, list[ChatId]] = field(
+        default_factory=dict
+    )
+    _chats_in_folders: dict[ChatFolderId, list[Chat]] = field(
+        default_factory=dict
+    )
     _chats: dict[ChatId, Chat] = field(default_factory=dict)
     _g_msg_queue: Queue[Message] = field(default_factory=Queue)
     _loop: asyncio.AbstractEventLoop = None
@@ -85,7 +89,7 @@ class TelegramClient(MessengerClient):
         self.tg.call_method('getOption', {'name': 'version'}).wait()
 
     def _put_new_msg(self, update: dict[str, Any]) -> None:
-        #logger.debug("Got a message", msg=update["message"])
+        # logger.debug("Got a message", msg=update["message"])
         for q in self._listeners:
             q.put_nowait(_parse_message(update["message"]))
         self._loop.call_soon_threadsafe(
@@ -110,14 +114,16 @@ class TelegramClient(MessengerClient):
     async def connect_client(self) -> None:
         self._chats.clear()
         await asyncio.sleep(2)
-        ensure_no_error(await wait_tg(
-            self.tg.call_method(
-                'loadChats', {
-                    'chat_list': {'@type': 'chatListMain'},
-                    'limit': _MAX_CHATS,
-                }
+        ensure_no_error(
+            await wait_tg(
+                self.tg.call_method(
+                    'loadChats', {
+                        'chat_list': {'@type': 'chatListMain'},
+                        'limit': _MAX_CHATS,
+                    }
+                )
             )
-        ))
+        )
         all_chats = ensure_no_error(
             await wait_tg(self.tg.get_chats(limit=_MAX_CHATS))
         ).update["chat_ids"]
@@ -128,22 +134,31 @@ class TelegramClient(MessengerClient):
             for chat in chats:
                 self._chats[chat.id] = chat
         for folder in self._folders:
-            chat_ids = ensure_no_error(await wait_tg(
-                self.tg.call_method(
-                    'getChats', {
-                        'chat_list': {
-                            '@type': 'chatListFolder',
-                            'chat_folder_id': folder.id
-                        },
-                        'limit': _MAX_CHATS,
-                    }
+            chat_ids = ensure_no_error(
+                await wait_tg(
+                    self.tg.call_method(
+                        'getChats', {
+                            'chat_list': {
+                                '@type': 'chatListFolder',
+                                'chat_folder_id': folder.id
+                            },
+                            'limit': _MAX_CHATS,
+                        }
+                    )
                 )
-            )).update["chat_ids"]
+            ).update["chat_ids"]
             self._folder_chat_ids[folder.id] = chat_ids
-            self._chats_in_folders[folder.id] = [
-                self._chats[chat_id] for chat_id in chat_ids
-            ]
-
+            # self._chats_in_folders[folder.id] = [
+            #    self._chats[chat_id] for chat_id in chat_ids
+            # ]
+            self._chats_in_folders[folder.id] = []
+            for chat_id in chat_ids:
+                if chat_id not in self._chats:
+                    logger.error(
+                        "Could not load chat", id=chat_id, folder=folder
+                    )
+                else:
+                    self._chats_in_folders[folder.id].append(self._chats[chat_id])
     async def _load_chat(self, chat_id: ChatId) -> Chat:
         logger.info("Retrieving chat", chat_id=chat_id)
         result = ensure_no_error(
