@@ -148,17 +148,17 @@ class TelegramClient(MessengerClient):
                 )
             ).update["chat_ids"]
             self._folder_chat_ids[folder.id] = chat_ids
-            # self._chats_in_folders[folder.id] = [
-            #    self._chats[chat_id] for chat_id in chat_ids
-            # ]
             self._chats_in_folders[folder.id] = []
             for chat_id in chat_ids:
                 if chat_id not in self._chats:
-                    logger.error(
-                        "Could not load chat", id=chat_id, folder=folder
+                    logger.info(
+                        "Chat was not loaded during the first round. "
+                        "Is it archived?",
+                        id=chat_id, folder=folder
                     )
-                else:
-                    self._chats_in_folders[folder.id].append(self._chats[chat_id])
+                    self._chats[chat_id] = await self._load_chat(chat_id)
+                self._chats_in_folders[folder.id].append(self._chats[chat_id])
+
     async def _load_chat(self, chat_id: ChatId) -> Chat:
         logger.info("Retrieving chat", chat_id=chat_id)
         result = ensure_no_error(
