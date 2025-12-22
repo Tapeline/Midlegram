@@ -1,11 +1,12 @@
 import struct
-from typing import Annotated
+from typing import Annotated, Any
 
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
-from litestar import Controller, Response, get, post
+from litestar import Controller, Request, Response, get, post
 from litestar.enums import RequestEncodingType
 from litestar.params import Body, BodyKwarg
+from pydantic.v1.mypy import error_from_orm
 
 from midlegram.application.client import AuthCodeVerdict
 from midlegram.application.feat_connect import ConnectClient
@@ -133,10 +134,11 @@ class ChatController(Controller):
     @inject
     async def send_message(
         self, chat_id: ChatId,
-        data: dict[str, str], *,
+        request: Request[Any, Any, Any], *,
         interactor: FromDishka[SendTextMessage],
     ) -> Response[bytes]:
-        await interactor(chat_id, data[list(data.keys())[0]])
+        msg = await request.body()
+        await interactor(chat_id, msg.decode(errors="ignore"))
         return ans_ok(b"")
 
     @get("/updates")
