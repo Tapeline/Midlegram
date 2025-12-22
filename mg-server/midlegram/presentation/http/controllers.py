@@ -9,7 +9,7 @@ from midlegram.application.feat_connect import ConnectClient
 from midlegram.application.feat_list_chat import (
     GetChat,
     ListChatFolders,
-    ListChats,
+    ListChats, ListChatsIds,
 )
 from midlegram.application.feat_login import (
     AuthWith2FA,
@@ -24,7 +24,7 @@ from midlegram.domain.entities import ChatFolderId, ChatId, MessageId
 from midlegram.presentation.http.security import security_defs
 from midlegram.presentation.http.serializers import (
     ans_ok,
-    serialize_chat, serialize_chat_folder, serialize_list,
+    serialize_chat, serialize_chat_folder, serialize_i64, serialize_list,
     serialize_message, serialize_str,
 )
 
@@ -89,6 +89,15 @@ class ChatController(Controller):
     ) -> Response[bytes]:
         chats = await interactor(folder_id, Pagination(limit, offset))
         return ans_ok(serialize_list(serialize_chat, chats))
+
+    @get("/folders/{folder_id:int}/chats_ids")
+    @inject
+    async def get_chats_ids(
+        self, folder_id: ChatFolderId, limit: int = 10, offset: int = 0, *,
+        interactor: FromDishka[ListChatsIds]
+    ) -> Response[bytes]:
+        chats = await interactor(folder_id, Pagination(limit, offset))
+        return ans_ok(serialize_list(serialize_i64, chats))
 
     @get("/chats/{chat_id:int}")
     @inject

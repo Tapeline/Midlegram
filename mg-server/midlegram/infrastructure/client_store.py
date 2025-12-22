@@ -48,6 +48,7 @@ class FSClientStore(ClientStore):
             raise InvalidToken
         client = self.client_factory.new_client(session_path)
         client.init()
+        await client.connect_client()
         self._active_sessions[tok] = client
         return client
 

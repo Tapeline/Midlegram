@@ -7,7 +7,7 @@ from midlegram.application.feat_connect import ConnectClient
 from midlegram.application.feat_list_chat import (
     GetChat,
     ListChatFolders,
-    ListChats,
+    ListChats, ListChatsIds,
 )
 from midlegram.application.feat_login import (
     AuthWith2FA,
@@ -43,6 +43,7 @@ class TgDIProvider(Provider):
         WaitForNewMessages,
         ConnectClient,
         GetChat,
+        ListChatsIds,
         scope=Scope.REQUEST,
     )
 

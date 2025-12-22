@@ -1,4 +1,5 @@
 import struct
+from locale import strcoll
 
 from litestar import Response
 
@@ -66,3 +67,7 @@ def serialize_list(serializer, list) -> bytes:
     return struct.pack(">i", len(list)) + b"".join(
         serializer(item) for item in list
     )
+
+
+def serialize_i64(i64: int) -> bytes:
+    return struct.pack(">q", i64)

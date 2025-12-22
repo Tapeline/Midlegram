@@ -24,6 +24,20 @@ class ListChats:
 
 
 @interactor
+class ListChatsIds:
+    store: ClientStore
+    session: SessionProvider
+
+    async def __call__(
+        self,
+        folder: ChatFolderId,
+        pagination: Pagination
+    ) -> list[ChatId]:
+        tg = await self.store.get_client(self.session.get_token())
+        return await tg.get_chats_ids(folder, pagination)
+
+
+@interactor
 class ListChatFolders:
     store: ClientStore
     session: SessionProvider
