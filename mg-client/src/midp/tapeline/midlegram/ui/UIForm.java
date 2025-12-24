@@ -11,7 +11,7 @@ import midp.tapeline.midlegram.ui.components.LoadingItem;
 
 public abstract class UIForm extends Form implements CommandListener, ItemCommandListener {
 
-	private Command backCommand;
+	protected Command backCommand;
 	private LoadingItem loading;
 	
 	public UIForm(String arg0) {

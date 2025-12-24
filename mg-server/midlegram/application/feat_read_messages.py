@@ -1,14 +1,15 @@
 import asyncio
 from operator import attrgetter
 
-from midlegram.application.client import ClientStore
+from midlegram.application.client import ClientStore, MessengerClient
+from midlegram.application.exceptions import UnknownClientError
 from midlegram.application.session import SessionProvider
 from midlegram.common import interactor
 from midlegram.domain.entities import (
     ChatId,
     Message,
     MessageId,
-    MessageWithSender,
+    MessageWithSender, User, UserId,
 )
 
 
@@ -27,7 +28,7 @@ class GetMessages:
         messages = await tg.get_messages(chat_id, from_msg, limit)
         senders = list(
             await asyncio.gather(
-                *map(tg.get_user,
+                *map(lambda uid: _try_to_get_user_or_dummy(tg, uid),
                     map(attrgetter("sender_id"), messages))
             )
         )
@@ -35,6 +36,13 @@ class GetMessages:
             message.with_sender(sender)
             for message, sender in zip(messages, senders)
         ]
+
+
+async def _try_to_get_user_or_dummy(tg: MessengerClient, uid: UserId) -> User:
+    try:
+        return await tg.get_user(uid)
+    except UnknownClientError:
+        return User(uid, f"User #{uid}", f"@#{uid}")
 
 
 @interactor

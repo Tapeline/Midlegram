@@ -8,7 +8,7 @@ from midlegram.application.feat_get_media import GetMedia
 from midlegram.application.feat_list_chat import (
     GetChat,
     ListChatFolders,
-    ListChats, ListChatsIds,
+    ListChats, ListChatsIds, SearchChats,
 )
 from midlegram.application.feat_login import (
     AuthWith2FA,
@@ -47,6 +47,7 @@ class TgDIProvider(Provider):
         ListChatsIds,
         ReconnectClient,
         GetMedia,
+        SearchChats,
         scope=Scope.REQUEST,
     )
 

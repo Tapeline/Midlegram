@@ -10,6 +10,7 @@ import javax.microedition.io.Connector;
 import javax.microedition.io.HttpConnection;
 
 import midp.tapeline.midlegram.ArrayUtils;
+import midp.tapeline.midlegram.StringUtils;
 import midp.tapeline.midlegram.client.data.Chat;
 
 public class MGClient {
@@ -20,6 +21,10 @@ public class MGClient {
 	public MGClient(String url, String sessionKey) {
 		this.url = url;
 		this.sessionKey = sessionKey;
+	}
+	
+	public String getSessionKey() {
+		return sessionKey;
 	}
 	
 	public void startAuth(String phone) throws IOException {
@@ -204,6 +209,22 @@ public class MGClient {
 			byte[] content = new byte[length];
 			dis.readFully(content);
 			return content;
+		} finally { 
+			if (dis != null) dis.close(); 
+			if (conn != null) conn.close();
+		}
+	}
+	
+	public Vector searchChats(String query, int limit) throws IOException {
+		HttpConnection conn = null;
+		DataInputStream dis = null;
+		try {
+			conn = openSessionHttp("GET", "/api/chats/search?q=" + StringUtils.urlEncode(query) + "&limit=" + limit);
+			assertRespOk(conn);
+			dis = conn.openDataInputStream();
+			Deserializer des = new Deserializer(dis);
+			assertOpSuccess(des.readOperationSuccess());
+			return des.readChatList();
 		} finally { 
 			if (dis != null) dis.close(); 
 			if (conn != null) conn.close();

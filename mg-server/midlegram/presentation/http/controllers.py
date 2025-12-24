@@ -4,6 +4,7 @@ from typing import Any
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
 from litestar import Controller, Request, Response, get, post
+from structlog import getLogger
 
 from midlegram.application.client import AuthCodeVerdict
 from midlegram.application.feat_connect import ConnectClient, ReconnectClient
@@ -11,7 +12,7 @@ from midlegram.application.feat_get_media import GetMedia
 from midlegram.application.feat_list_chat import (
     GetChat,
     ListChatFolders,
-    ListChats, ListChatsIds,
+    ListChats, ListChatsIds, SearchChats,
 )
 from midlegram.application.feat_login import (
     AuthWith2FA,
@@ -29,6 +30,8 @@ from midlegram.presentation.http.serializers import (
     serialize_chat, serialize_chat_folder, serialize_i64, serialize_list,
     serialize_message, serialize_message_with_sender, serialize_str,
 )
+
+logger = getLogger(__name__)
 
 
 class AccountController(Controller):
@@ -136,6 +139,7 @@ class ChatController(Controller):
         interactor: FromDishka[SendTextMessage],
     ) -> Response[bytes]:
         msg = await request.body()
+        logger.info("Sending message", bytes=msg)
         await interactor(chat_id, msg.decode(errors="ignore"))
         return ans_ok(b"")
 
@@ -178,3 +182,14 @@ class ChatController(Controller):
             await interactor(mime, file_id, timeout),
             headers={"Content-Type": mime},
         )
+
+    @get("/chats/search")
+    @inject
+    async def get_file(
+        self, *,
+        q: str,
+        limit: int = 10,
+        interactor: FromDishka[SearchChats]
+    ) -> Response[bytes]:
+        chats = await interactor(q, limit)
+        return ans_ok(serialize_list(serialize_chat, chats))

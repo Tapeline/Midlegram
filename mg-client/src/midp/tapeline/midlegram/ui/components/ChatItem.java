@@ -15,17 +15,15 @@ import midp.tapeline.midlegram.ui.forms.ChatListForm;
 public class ChatItem extends StringItem implements ItemCommandListener {
 
 	Chat chat;
-	ChatListForm listForm;
 	Command go = new Command("Go", Command.OK, 1);
 	
-	public ChatItem(Chat chat, ChatListForm listForm) {
+	public ChatItem(Chat chat) {
 		super(
 				chat.title, 
 				(chat.unreadCount > 0? "(" + chat.unreadCount + ") " : "") 
 				+ StringUtils.trunc(chat.lastMessage, 32)
 		);
 		this.chat = chat;
-		this.listForm = listForm;
 		setDefaultCommand(go);
 		setItemCommandListener(this);
 		setLayout(Item.LAYOUT_EXPAND);

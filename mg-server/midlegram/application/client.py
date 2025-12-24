@@ -98,6 +98,10 @@ class MessengerClient(Protocol):
     ) -> bytes:
         raise NotImplementedError
 
+    @abstractmethod
+    async def search_chats(self, query: str, limit: int) -> list[Chat]:
+        raise NotImplementedError
+
 
 class ClientStore(Protocol):
     @abstractmethod

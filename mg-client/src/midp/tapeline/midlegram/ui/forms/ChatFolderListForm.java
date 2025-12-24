@@ -3,6 +3,9 @@ package midp.tapeline.midlegram.ui.forms;
 import java.io.IOException;
 import java.util.Vector;
 
+import javax.microedition.lcdui.Command;
+
+import midp.tapeline.midlegram.Midlegram;
 import midp.tapeline.midlegram.Services;
 import midp.tapeline.midlegram.client.data.ChatFolder;
 import midp.tapeline.midlegram.ui.UI;
@@ -11,9 +14,14 @@ import midp.tapeline.midlegram.ui.components.ChatFolderItem;
 
 public class ChatFolderListForm extends UIForm {
 	
+	Command exitCommand = new Command("Exit", Command.EXIT, 1);
+	Command searchCommand = new Command("Search", Command.SCREEN, 1);
+	
 	public ChatFolderListForm() {
 		super("Folders");
-		addBackButton();
+		addCommand(searchCommand);
+		addCommand(exitCommand);
+		setCommandListener(this);
 	}
 	
 	public void onStart() {
@@ -33,6 +41,14 @@ public class ChatFolderListForm extends UIForm {
 	
 	public void onResume() {
 		setLoading(false);
+	}
+	
+	protected void onCommand(Command cmd) {
+		if (cmd == exitCommand) {
+			Midlegram.instance.exit();
+		} else if (cmd == searchCommand) {
+			UI.startForm(new SearchChatsForm());
+		}
 	}
 	
 }

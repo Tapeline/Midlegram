@@ -53,7 +53,7 @@ public class ChatListForm extends UIForm {
 			i < Math.min((currentPage + 1) * PAGE_SIZE, chats.size()); 
 			++i
 		) 
-			append(new ChatItem((Chat) chats.elementAt(i), this));
+			append(new ChatItem((Chat) chats.elementAt(i)));
 		if ((currentPage + 1) * PAGE_SIZE < chats.size()) append(nextButton);
 		setLoading(false);
 	}

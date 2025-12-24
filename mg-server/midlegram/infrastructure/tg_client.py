@@ -133,6 +133,9 @@ class TelegramClient(MessengerClient):
         self._chats_in_folders[ChatFolderId(0)] = list(
             await asyncio.gather(*map(self._load_chat, all_chats))
         )
+        self._folder_chat_ids[ChatFolderId(0)] = [
+            chat.id for chat in self._chats_in_folders[ChatFolderId(0)]
+        ]
         for chats in self._chats_in_folders.values():
             for chat in chats:
                 self._chats[chat.id] = chat
@@ -235,6 +238,8 @@ class TelegramClient(MessengerClient):
         return self._folders
 
     async def get_chat(self, chat_id: ChatId) -> Chat:
+        if chat_id not in self._chats:
+            self._chats[chat_id] = await self._load_chat(chat_id)
         return self._chats[chat_id]
 
     async def wait_for_messages(self, timeout_s: int) -> list[Message]:
@@ -386,6 +391,15 @@ class TelegramClient(MessengerClient):
                 {"type": "File path is empty", "info": file_info}
             )
         return Path(path_str).read_bytes()
+
+    async def search_chats(self, query: str, limit: int) -> list[Chat]:
+        chats = ensure_no_error(await wait_tg(self.tg.call_method(
+            "searchChatsOnServer",
+            {"query": query, "limit": limit}
+        )))
+        return list(await asyncio.gather(*map(
+            self.get_chat, chats.update["chat_ids"]
+        )))
 
 
 def _parse_message(msg: dict[str, Any]) -> Message:
