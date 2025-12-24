@@ -200,7 +200,7 @@ public class MGClient {
 			conn = openSessionHttp("GET", "/api/file/" + id + "?mime=" + mimetype);
 			assertRespOk(conn);
 			dis = conn.openDataInputStream();
-			int length = Integer.parseInt(conn.getRequestProperty("Content-Length").toString());
+			int length = conn.getHeaderFieldInt("Content-Length", 0);
 			byte[] content = new byte[length];
 			dis.readFully(content);
 			return content;

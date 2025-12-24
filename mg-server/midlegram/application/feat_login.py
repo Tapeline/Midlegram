@@ -28,6 +28,7 @@ class AuthWithCode:
         verdict = await tg.is_auth_code_valid(code)
         if verdict == AuthCodeVerdict.OK:
             await tg.connect_client()
+        return verdict
 
 
 @interactor

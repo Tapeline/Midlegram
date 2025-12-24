@@ -36,9 +36,7 @@ public class Midlegram extends MIDlet implements Runnable {
 		Display.getDisplay(this).setCurrent(new Splash());
 		Animation.startAnimations();
 		Settings.load();
-		if (!Settings.sessionKey.equals("c0e0af36-d51d-4a5a-ad8c-9360892945d1"))
-			System.err.println("Key!");
-		Services.client = new MGClient("http://mpgram.tapeline.dev", "c0e0af36-d51d-4a5a-ad8c-9360892945d1");
+		Services.client = new MGClient("http://mpgram.tapeline.dev", Settings.sessionKey);
 		Services.tg = new Telegram(Services.client);
 		new Thread(this).start();
 	}
