@@ -58,4 +58,9 @@ public abstract class UIForm extends Form implements CommandListener, ItemComman
 			loading = null;
 		}
 	}
+
+	public void deleteAll() {
+		setLoading(false);
+		super.deleteAll();
+	}
 }

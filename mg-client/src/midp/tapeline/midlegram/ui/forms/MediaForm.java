@@ -38,9 +38,13 @@ public class MediaForm extends UIForm {
 	
 	private void render() {
 		deleteAll();
-		Image img = Image.createImage(content, 0, content.length);
-        ImageItem imageitem = new ImageItem("", img, ImageItem.LAYOUT_CENTER, "");
-        append(imageitem);
+		try {
+			Image img = Image.createImage(content, 0, content.length);
+	        ImageItem imageitem = new ImageItem("", img, ImageItem.LAYOUT_CENTER, "");
+	        append(imageitem);
+		} catch (Exception e) {
+			UI.alertFatal(e);
+		}
 	}
 	
 	public void onResume() {

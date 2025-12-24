@@ -9,7 +9,7 @@ import midp.tapeline.midlegram.client.data.ChatFolder;
 
 public class Telegram {
 	
-	private static int MESSAGE_BATCH = 20;
+	private static int MESSAGE_BATCH = 5;
 	
 	MGClient client;
 	Hashtable chats;

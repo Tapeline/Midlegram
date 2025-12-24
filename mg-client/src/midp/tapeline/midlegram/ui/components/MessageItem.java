@@ -26,7 +26,7 @@ public class MessageItem extends StringItem implements ItemCommandListener {
 	Command viewMedia;
 	
 	public MessageItem(Message message, ChatForm form) {
-		super(message.authorName, message.text + "\n\t" + 
+		super(message.authorName, message.text + "\n" + 
 					StringUtils.dateToString(new Date(((long) message.time) * 1000)));
 		this.form = form;
 		this.message = message;
@@ -35,6 +35,7 @@ public class MessageItem extends StringItem implements ItemCommandListener {
 		if (message.media.size() != 0) {
 			viewMedia = new Command("View media", Command.SCREEN, 1);
 			addCommand(viewMedia);
+			setDefaultCommand(viewMedia);
 		}
 	}
 
