@@ -22,7 +22,6 @@ public class ChatListForm extends UIForm {
 
 	private static final int PAGE_SIZE = 10;
 	
-	LoadingItem loading;
 	ChatFolder folder;
 	Command prev = new Command("Prev", Command.SCREEN, 1);
 	Command next = new Command("Next", Command.SCREEN, 1);
@@ -41,7 +40,6 @@ public class ChatListForm extends UIForm {
 		prevButton.setItemCommandListener(this);
 		nextButton.setItemCommandListener(this);
 		addBackButton();
-		append(loading);
 	}
 	
 	private void repaintChats() {

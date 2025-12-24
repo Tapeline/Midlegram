@@ -25,7 +25,9 @@ class AuthWithCode:
 
     async def __call__(self, code: str) -> AuthCodeVerdict:
         tg = await self.store.get_client(self.session.get_token())
-        return await tg.is_auth_code_valid(code)
+        verdict = await tg.is_auth_code_valid(code)
+        if verdict == AuthCodeVerdict.OK:
+            await tg.connect_client()
 
 
 @interactor
@@ -36,3 +38,4 @@ class AuthWith2FA:
     async def __call__(self, password: str) -> None:
         tg = await self.store.get_client(self.session.get_token())
         await tg.auth_with_2fa(password)
+        await tg.connect_client()
