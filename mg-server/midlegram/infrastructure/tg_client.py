@@ -15,7 +15,7 @@ from telegram.utils import AsyncResult
 from midlegram.application.client import AuthCodeVerdict, MessengerClient
 from midlegram.application.exceptions import (
     InvalidAuthCode,
-    UnknownClientError,
+    TelegramSessionExpired, UnknownClientError,
     Wrong2FAPassword,
 )
 from midlegram.application.pagination import Pagination
@@ -59,6 +59,8 @@ async def wait_tg(result: AsyncResult) -> AsyncResult:
 
 def ensure_no_error(result: AsyncResult) -> AsyncResult:
     if result.error:
+        if result.error_info["code"] == 401:
+            raise TelegramSessionExpired
         logger.error("Unknown client error: %s", result.error_info)
         raise UnknownClientError(result.error_info)
     return result
@@ -320,6 +322,9 @@ class TelegramClient(MessengerClient):
     def logout_and_stop(self) -> None:
         logger.info("Logging out")
         self.tg.call_method('logOut', {})
+        self.stop()
+
+    def stop(self) -> None:
         self.tg.stop()
 
     async def get_user(self, user_id: UserId) -> User:

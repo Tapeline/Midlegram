@@ -28,6 +28,10 @@ class ClientNotConnected(AppError):
     ...
 
 
+class TelegramSessionExpired(AppError):
+    ...
+
+
 @dto
 class UnknownClientError(AppError):
     detail: dict[str, Any]

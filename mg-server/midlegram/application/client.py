@@ -89,6 +89,10 @@ class MessengerClient(Protocol):
         raise NotImplementedError
 
     @abstractmethod
+    def stop(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
     async def get_file_content(
         self, file_id: int, timeout_s: int = 300
     ) -> bytes:
