@@ -109,6 +109,10 @@ class ClientStore(Protocol):
         raise NotImplementedError
 
     @abstractmethod
+    async def create_client_for_login(self, tok: SessionToken) -> MessengerClient:
+        raise NotImplementedError
+
+    @abstractmethod
     async def create_client(self, tok: SessionToken) -> MessengerClient:
         raise NotImplementedError
 

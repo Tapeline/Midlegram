@@ -40,6 +40,18 @@ class FSClientStore(ClientStore):
             raise ClientNotConnected
         return self._active_sessions[tok]
 
+    async def create_client_for_login(
+        self,
+        tok: SessionToken
+    ) -> MessengerClient:
+        session_path = Path(self.config.storage.sessions_path, tok)
+        if not session_path.exists():
+            raise InvalidToken
+        client = self.client_factory.new_client(session_path)
+        client.init()
+        self._active_sessions[tok] = client
+        return client
+
     async def create_client(self, tok: SessionToken) -> MessengerClient:
         if tok in self._active_sessions:
             return await self.get_client(tok)
