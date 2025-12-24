@@ -408,8 +408,8 @@ def _parse_message(msg: dict[str, Any]) -> Message:
         media.append(
             MessageMedia(
                 "image/png",
-                photo_size['file']['id'],
-                photo_size['file']['size'],
+                photo_size['photo']['id'],
+                photo_size['photo']['size'],
             )
         )
     elif msg_type == MessageType.VIDEO:
@@ -451,8 +451,8 @@ def _parse_message(msg: dict[str, Any]) -> Message:
         media.append(
             MessageMedia(
                 content['audio']['mime_type'],
-                content['audio']['file']['id'],
-                content['audio']['file']['size'],
+                content['audio']['audio']['id'],
+                content['audio']['audio']['size'],
             )
         )
     else:
