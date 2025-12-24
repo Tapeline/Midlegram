@@ -151,7 +151,7 @@ class ChatController(Controller):
 
     @post("/connect")
     @inject
-    async def notify_client_connected(
+    async def connect(
         self, *, interactor: FromDishka[ConnectClient]
     ) -> Response[bytes]:
         await interactor()
@@ -159,7 +159,7 @@ class ChatController(Controller):
 
     @post("/reconnect")
     @inject
-    async def notify_client_connected(
+    async def reconnect(
         self, *, interactor: FromDishka[ReconnectClient]
     ) -> Response[bytes]:
         await interactor()

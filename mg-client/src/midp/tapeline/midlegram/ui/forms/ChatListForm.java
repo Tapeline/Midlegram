@@ -41,13 +41,11 @@ public class ChatListForm extends UIForm {
 		prevButton.setItemCommandListener(this);
 		nextButton.setItemCommandListener(this);
 		addBackButton();
-		loading = new LoadingItem();
 		append(loading);
-		loading.setActive(true);
-		loading.setIndeterminate();
 	}
 	
 	private void repaintChats() {
+		setLoading(false);
 		deleteAll();
 		setLoading(true);
 		if (currentPage > 0)
@@ -59,11 +57,14 @@ public class ChatListForm extends UIForm {
 		) 
 			append(new ChatItem((Chat) chats.elementAt(i), this));
 		if ((currentPage + 1) * PAGE_SIZE < chats.size()) append(nextButton);
+		setLoading(false);
 	}
 	
 	public void onStart() {
+		setLoading(true);
 		try {
 			chats = Services.tg.getChats(folder.id);
+			repaintChats();
 		} catch (IOException exc) {
 			UI.alertFatal(exc);
 		} finally {
