@@ -1,0 +1,21 @@
+01_type_dependency:
+  select: [compound_protocol_type]
+  rule: |
+    if some type A has a field that has a type of some other type B 
+    or a type that is a list of some type B
+    then A should know that it imports type B
+
+02_impl_dependency:
+  select:
+    - python_impl
+    - j2me_impl
+    - simple_protocol_type
+    - compound_protocol_type
+    - enum_protocol_type
+  rule: |
+    modify only impl units.
+    every impl unit should have a JSON list of protocol types it implements
+    under attribute named "type_declarations".
+    E.g. if impl unit implements type A which slot X is Y and attribute W is Z, 
+    then impl unit should have an attribute "type_declarations" == [
+    {"name": "A", "slots": {"X": "Y"}, "attributes": {"W": "Z"}} ]

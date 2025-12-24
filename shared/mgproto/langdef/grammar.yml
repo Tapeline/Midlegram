@@ -1,0 +1,59 @@
+simple_protocol_type:
+  slots:
+    name: string
+    element: a freeform description of what this type is
+  pattern: |
+    type $name = $element;
+
+compound_protocol_type:
+  slots:
+    name: string
+    elements: one or many `protocol_type`s
+  pattern: |
+    type $name {
+      $element_1_type $element_1_name;
+      $element_2_type $element_2_name;
+      $element_n_type $element_n_name;
+      # where n >= 0
+      # if element type has postfix [] - it means that it is a list of this element type
+    }
+
+enum_protocol_type:
+  slots:
+    name: string
+    base: a simple type used as values to distinguish enum values
+    variants: list of variant names that are mapped to some base values
+  pattern: |
+    enum $name($base) {
+      $variant_1_name = $variant_1_value;
+      $variant_2_name = $variant_2_value;
+      $variant_n_name = $variant_n_value;
+      # where n >= 0
+    }
+
+python_impl:
+  slots:
+    args: |
+      mapping of declared type name to implemented serializer
+      argument list using python's type hints
+  pattern: |
+    py impl of {
+      $type_1_lang_type -> $type_1_type_name;
+      $type_2_lang_type -> $type_2_type_name;
+      $type_n_lang_type -> $type_n_type_name;
+      # where n >= 0
+    }
+
+j2me_impl:
+  slots:
+    types: |
+      mapping of declared type name to target language 
+      type from which the serialization will happen 
+      (in semi-free form, using actual target language type names)
+  pattern: |
+    py impl of {
+      $type_1_type_name -> $type_1_lang_type;
+      $type_2_type_name -> $type_2_lang_type;
+      $type_n_type_name -> $type_n_lang_type;
+      # where n >= 0
+    }

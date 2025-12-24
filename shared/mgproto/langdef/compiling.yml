@@ -1,0 +1,26 @@
+python_impl:
+  path: py/serializers.py
+  template: |
+    import struct
+    # following type_declarations attribute implement serialization 
+    # of given types using python's struct library
+    # use ">" parameter (big-endian option) when serializing with struct
+    # define a python function for each type that needs to be serialized:
+    # def serialize_$typename(parameters declared for specified type) -> bytes:
+    #     serialization...
+    # respect python's name convention: convert any camelCase to snake_case
+    
+
+j2me_impl:
+  path: java/Deserializer.java
+  template: |
+    # following the specified guide slot for the impl unit and type_declarations
+    # attribute implement serialization of given types using java's DataInputStream
+    import java.io.DataInputStream;
+    public class Deserializer {
+        DataInputStream dis;
+        public Deserializer(DataInputStream dis) {
+            this.dis = dis;
+        }
+        # here go deserialization methods
+    }

@@ -1,0 +1,80 @@
+type Id = signed 64-bit integer
+type Int = signed 32-bit integer
+type StringLength = signed 16-bit integer
+
+type String {
+    StringLength bytesCount;
+    byte[length] bytes;
+}
+
+type ChatFolder {
+    Id id;
+    String title;
+}
+
+type Chat {
+    Id id;
+    String title;
+    Int unreadCount;
+    bool hasLastMessage;
+    String lastMessage;
+}
+
+enum MessageType(byte) {
+    TEXT = 0;
+    PHOTO = 1;
+    VIDEO = 2;
+    VOICE = 3;
+    UNKNOWN = 4;
+}
+
+type Message {
+    Id id;
+    MessageType type;
+    Int timestamp;
+    Id senderId;
+    String senderName;
+    String senderHandle;
+    String text;
+}
+
+type MessageList {
+    Int length;
+    Message[length] messages;
+}
+
+type ChatList {
+    Int length;
+    Chat[length] chats;
+}
+
+type ChatFolderList {
+    Int length;
+    ChatFolder[length] chatFolders;
+}
+
+enum ResponseStatus(byte) {
+    OK = 0x00;
+    ERROR = 0xFF;
+}
+
+type Response {
+    ResponseStatus status;
+    Any data;  # any amount of any bytes
+}
+
+py impl of {
+    is_ok: bool, response_data: bytes -> Response;
+    is_ok: bool -> ResponseStatus;
+    bytes_count: int -> StringLength;
+    text: str -> String;
+    value: int -> Int;
+    value: int -> Id;
+    chat: Chat -> Chat;
+    folder: ChatFolder -> ChatFolder;
+    message: Message -> Message;
+    msg_type: MessageType -> MessageType;
+    folders: list[ChatFolder] -> ChatFolderList;
+    chats: list[Chat] -> ChatList;
+    messages: list[Message] -> MessageList;
+}
