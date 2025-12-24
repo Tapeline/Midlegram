@@ -55,7 +55,9 @@ public class Midlegram extends MIDlet implements Runnable {
 			try {
 				Services.tg.connect();
 			} catch (IOException e) {
-				throw new RuntimeException(e.toString());
+				UI.alertFatal(e);
+				UI.startFormFromScratch(new StartAuthForm());
+				return;
 			}
 			UI.startFormFromScratch(new ChatFolderListForm());
 		} else
