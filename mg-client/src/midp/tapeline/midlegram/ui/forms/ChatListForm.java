@@ -72,10 +72,10 @@ public class ChatListForm extends UIForm {
 
 	protected void onCommand(Command cmd) {
 		if (cmd == prev) {
-			currentPage++;
+			currentPage--;
 			repaintChats();
 		} else if (cmd == next) {
-			currentPage--;
+			currentPage++;
 			repaintChats();
 		}
 	}

@@ -5,6 +5,8 @@ import java.util.Vector;
 
 import javax.microedition.lcdui.Image;
 import javax.microedition.lcdui.ImageItem;
+import javax.microedition.media.Manager;
+import javax.microedition.media.Player;
 
 import midp.tapeline.midlegram.Services;
 import midp.tapeline.midlegram.client.data.ChatFolder;
@@ -38,12 +40,28 @@ public class MediaForm extends UIForm {
 	
 	private void render() {
 		deleteAll();
-		try {
-			Image img = Image.createImage(content, 0, content.length);
-	        ImageItem imageitem = new ImageItem("", img, ImageItem.LAYOUT_CENTER, "");
-	        append(imageitem);
-		} catch (Exception e) {
-			UI.alertFatal(e);
+		if (media.mimetype.startsWith("image")) {
+			try {
+				Image img = Image.createImage(content, 0, content.length);
+		        ImageItem imageitem = new ImageItem("", img, ImageItem.LAYOUT_CENTER, "");
+		        append(imageitem);
+			} catch (Exception e) {
+				UI.alertFatal(e);
+			}
+		} else if (media.mimetype.startsWith("audioaaaa")) {
+			
+		} else {
+			UI.alertInfo("Unknown media type " + media.mimetype);
+			String apiVersion = System.getProperty("microedition.media.version");
+	        append("MM API version:" + apiVersion + "\n");
+	        append("Mixing supported: " + System.getProperty("supports.mixing") + "\n");
+	        append("Audio capture supported: " + System.getProperty("supports.audio.capture") + "\n");
+	        append("Video capture supported: " + System.getProperty("supports.video.capture") + "\n");
+	        append("Recording supported: " + System.getProperty("supports.recording") + "\n");
+	        append("Supported audio encodings: " + System.getProperty("audio.encodings") + "\n");
+	        append("Supported video encodings: " + System.getProperty("video.encodings") + "\n");
+	        append("Supported video snaphot encodings: " + System.getProperty("video.snapshot.encodings") + "\n");
+	        append("\n");
 		}
 	}
 	

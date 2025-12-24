@@ -139,7 +139,7 @@ class ChatController(Controller):
         interactor: FromDishka[SendTextMessage],
     ) -> Response[bytes]:
         msg = await request.body()
-        logger.info("Sending message", bytes=msg)
+        logger.info("Sending message", bytes=[int(c) for c in msg])
         await interactor(chat_id, msg.decode(errors="ignore"))
         return ans_ok(b"")
 
@@ -185,7 +185,7 @@ class ChatController(Controller):
 
     @get("/chats/search")
     @inject
-    async def get_file(
+    async def search_chats(
         self, *,
         q: str,
         limit: int = 10,
