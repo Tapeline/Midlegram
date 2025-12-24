@@ -42,7 +42,8 @@ _MSG_TYPE_MAP = {
     MessageType.PHOTO: 1,
     MessageType.VIDEO: 2,
     MessageType.VOICE: 3,
-    MessageType.UNKNOWN: 4,
+    MessageType.AUDIO: 4,
+    MessageType.UNKNOWN: 100,
 }
 
 
