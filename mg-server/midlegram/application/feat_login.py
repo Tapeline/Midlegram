@@ -13,6 +13,7 @@ class StartAuth:
 
     async def __call__(self, phone: str) -> SessionToken:
         tok = await self.store.new_session()
+        breakpoint()
         tg = await self.store.create_client(tok)
         await tg.request_phone_auth(phone)
         return tok
