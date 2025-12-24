@@ -1,6 +1,7 @@
 package midp.tapeline.midlegram.ui.forms;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Vector;
 
 import javax.microedition.lcdui.Command;
@@ -98,6 +99,14 @@ public class ChatForm extends UIForm {
 			if (msgInput.getString().length() == 0) return;
 			try {
 				Services.tg.sendTextMessage(chat.id, msgInput.getString());
+				insert(size() - 1, new MessageItem(
+						new Message(
+								0L, (byte) 0, 
+								(int) (Calendar.getInstance().getTime().getTime() / 1000), 
+								0, msgInput.getString(), "Me", "?"
+						), this)
+				);
+				msgInput.setString("");
 			} catch (IOException e) {
 				UI.alertFatal(e);
 			}

@@ -5,13 +5,12 @@ from pathlib import Path
 from dishka import AsyncContainer, make_async_container
 from dishka.integrations.litestar import (
     LitestarProvider,
-    setup_dishka as litestar_setup_dishka
+    setup_dishka as litestar_setup_dishka,
 )
 from litestar import Litestar
 from litestar.config.cors import CORSConfig
 
 from litestar.plugins.prometheus import PrometheusConfig, PrometheusController
-
 
 from midlegram.bootstrap.di.config import ConfigDIProvider
 from midlegram.bootstrap.di.tg import TgDIProvider
@@ -24,6 +23,8 @@ from midlegram.presentation.http.controllers import (
     ChatController,
 )
 from midlegram.presentation.http.errors import handlers
+from midlegram.presentation.http.security import \
+    create_instance_password_middleware
 
 
 def _create_config() -> Config:
@@ -59,13 +60,20 @@ def create_app() -> Litestar:
     _select_event_loop()
     config = _create_config()
     container = _create_container(config)
-    
+
     prometheus_config = PrometheusConfig(
         app_name="midlegram",
         group_path=True,
         exclude=["/metrics"],
     )
-    
+
+    middleware = [prometheus_config.middleware]
+
+    if config.instance_password:
+        middleware.append(
+            create_instance_password_middleware(config.instance_password)
+        )
+
     litestar_app = Litestar(
         debug=True,
         route_handlers=[
@@ -73,9 +81,7 @@ def create_app() -> Litestar:
             ChatController,
             PrometheusController,
         ],
-        middleware=[
-            prometheus_config.middleware,
-        ],
+        middleware=middleware,
         exception_handlers=handlers,  # type: ignore
         cors_config=CORSConfig(allow_origins=["*"]),
         plugins=[

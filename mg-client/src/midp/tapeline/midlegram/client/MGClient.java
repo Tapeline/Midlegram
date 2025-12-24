@@ -141,7 +141,7 @@ public class MGClient {
 	
 	public void connectClient() throws IOException {
 		HttpConnection conn = null;
-		DataInputStream dis = null;
+		DataInputStream dis = null; 
 		try {
 			conn = openSessionHttp("POST", "/api/connect");
 			assertRespOk(conn);

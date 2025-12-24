@@ -30,3 +30,4 @@ class Config:
     logging: LoggingConfig
     polling_timeout_s: int = 30
     max_msg_queue_size: int = 50
+    instance_password: str | None = None
