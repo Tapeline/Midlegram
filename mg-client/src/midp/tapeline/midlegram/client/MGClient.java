@@ -79,7 +79,7 @@ public class MGClient {
 		HttpConnection conn = null;
 		DataInputStream dis = null;
 		try {
-			conn = openSessionHttp("GET", "/api/folders/" + folderId + "/chats_ids");
+			conn = openSessionHttp("GET", "/api/folders/" + folderId + "/chats_ids?limit=1000");
 			assertRespOk(conn);
 			dis = conn.openDataInputStream();
 			Deserializer des = new Deserializer(dis);
@@ -95,7 +95,7 @@ public class MGClient {
 		HttpConnection conn = null;
 		DataInputStream dis = null;
 		try {
-			conn = openSessionHttp("GET", "/api/folders/" + folderId + "/chats");
+			conn = openSessionHttp("GET", "/api/folders/" + folderId + "/chats?limit=1000");
 			assertRespOk(conn);
 			dis = conn.openDataInputStream();
 			Deserializer des = new Deserializer(dis);
@@ -143,7 +143,7 @@ public class MGClient {
 		HttpConnection conn = null;
 		DataInputStream dis = null; 
 		try {
-			conn = openSessionHttp("POST", "/api/connect");
+			conn = openSessionHttp("POST", "/api/reconnect");
 			assertRespOk(conn);
 			dis = conn.openDataInputStream();
 			Deserializer des = new Deserializer(dis);
@@ -189,6 +189,23 @@ public class MGClient {
 		} finally { 
 			if (dis != null) dis.close(); 
 			if (dos != null) dos.close(); 
+			if (conn != null) conn.close();
+		}
+	}
+	
+	public byte[] getFile(int id, String mimetype) throws IOException {
+		HttpConnection conn = null;
+		DataInputStream dis = null;
+		try {
+			conn = openSessionHttp("GET", "/api/file/" + id + "?mime=" + mimetype);
+			assertRespOk(conn);
+			dis = conn.openDataInputStream();
+			int length = Integer.parseInt(conn.getRequestProperty("Content-Length").toString());
+			byte[] content = new byte[length];
+			dis.readFully(content);
+			return content;
+		} finally { 
+			if (dis != null) dis.close(); 
 			if (conn != null) conn.close();
 		}
 	}

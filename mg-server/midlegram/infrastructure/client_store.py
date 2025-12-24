@@ -52,6 +52,13 @@ class FSClientStore(ClientStore):
         self._active_sessions[tok] = client
         return client
 
+    async def recreate_client(self, tok: SessionToken) -> MessengerClient:
+        if tok in self._active_sessions:
+            client = await self.get_client(tok)
+            client.logout_and_stop()
+            self._active_sessions.pop(tok)
+        return await self.create_client(tok)
+
     async def logout(self, tok: SessionToken) -> None:
         if client := self._active_sessions.get(tok):
             client.logout_and_stop()

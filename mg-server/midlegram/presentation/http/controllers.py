@@ -1,14 +1,13 @@
 import struct
-from typing import Annotated, Any
+from typing import Any
 
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
 from litestar import Controller, Request, Response, get, post
-from litestar.enums import RequestEncodingType
-from litestar.params import Body, BodyKwarg
 
 from midlegram.application.client import AuthCodeVerdict
-from midlegram.application.feat_connect import ConnectClient
+from midlegram.application.feat_connect import ConnectClient, ReconnectClient
+from midlegram.application.feat_get_media import GetMedia
 from midlegram.application.feat_list_chat import (
     GetChat,
     ListChatFolders,
@@ -157,3 +156,25 @@ class ChatController(Controller):
     ) -> Response[bytes]:
         await interactor()
         return ans_ok(b"")
+
+    @post("/reconnect")
+    @inject
+    async def notify_client_connected(
+        self, *, interactor: FromDishka[ReconnectClient]
+    ) -> Response[bytes]:
+        await interactor()
+        return ans_ok(b"")
+
+    @get("/file/{file_id:int}")
+    @inject
+    async def get_file(
+        self, *,
+        file_id: int,
+        mime: str,
+        timeout: int = 60,
+        interactor: FromDishka[GetMedia]
+    ) -> Response[bytes]:
+        return Response(
+            await interactor(mime, file_id, timeout),
+            headers={"Content-Type": mime},
+        )

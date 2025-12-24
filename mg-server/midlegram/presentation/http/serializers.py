@@ -7,7 +7,7 @@ from midlegram.domain.entities import (
     Chat,
     ChatFolder,
     Message,
-    MessageType,
+    MessageMedia, MessageType,
     MessageWithSender,
 )
 from midlegram.domain.text_adapter import adapt_string
@@ -65,7 +65,8 @@ def serialize_message_with_sender(message: MessageWithSender) -> bytes:
         message.sender.id,
     ) + serialize_str(message.sender.name) + \
         serialize_str(message.sender.handle) + \
-        serialize_str(message.text)
+        serialize_str(message.text) + \
+        serialize_list(serialize_message_media, message.media)
 
 
 def serialize_chat(chat: Chat) -> bytes:
@@ -89,3 +90,8 @@ def serialize_list(serializer, list) -> bytes:
 
 def serialize_i64(i64: int) -> bytes:
     return struct.pack(">q", i64)
+
+
+def serialize_message_media(media: MessageMedia) -> bytes:
+    return serialize_str(media.mimetype) + \
+        struct.pack(">iq", media.file_id, media.size)

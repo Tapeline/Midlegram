@@ -19,7 +19,7 @@ public class ChatFolderListForm extends UIForm {
 	public void onStart() {
 		setLoading(true);
 		try {
-			Vector folders = Services.client.getFolders();
+			Vector folders = Services.tg.getFolders();
 			append(new ChatFolderItem(new ChatFolder(0, "All"), this));
 			for (int i = 0; i < folders.size(); i++)
 				append(new ChatFolderItem((ChatFolder) folders.elementAt(i), this));

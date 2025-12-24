@@ -17,7 +17,7 @@ public class ChatFolderItem extends StringItem implements ItemCommandListener {
 	Command go = new Command("Go", Command.OK, 1);
 	
 	public ChatFolderItem(ChatFolder chatFolder, ChatFolderListForm folderListForm) {
-		super(chatFolder.name, Long.toString(chatFolder.id));
+		super("", chatFolder.name, Item.BUTTON);
 		this.folder = chatFolder;
 		this.folderListForm = folderListForm;
 		setDefaultCommand(go);

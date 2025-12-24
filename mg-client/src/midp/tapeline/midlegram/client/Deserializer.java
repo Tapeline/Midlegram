@@ -6,6 +6,7 @@ import java.util.Vector;
 
 import midp.tapeline.midlegram.client.data.Chat;
 import midp.tapeline.midlegram.client.data.ChatFolder;
+import midp.tapeline.midlegram.client.data.Media;
 import midp.tapeline.midlegram.client.data.Message;
 
 public class Deserializer {
@@ -110,9 +111,20 @@ public class Deserializer {
 			String authorHandle = readString();
 			String text = readString();
 			System.out.println("text " + text + " len " + text.length());
-			msgs.addElement(new Message(id, type, time, senderId, text, authorName, authorHandle));
+			int mediaLen = dis.readInt();
+			System.out.println("medialen " + len);
+			Vector media = new Vector();
+			for (int j = 0; j < mediaLen; ++j) media.addElement(readMedia());
+			msgs.addElement(new Message(id, type, time, senderId, text, authorName, authorHandle, media));
 		}
 		return msgs;
+	}
+	
+	public Media readMedia() throws IOException {
+		String mimetype = readString();
+		int id = dis.readInt();
+		long size = dis.readLong();
+		return new Media(mimetype, id, size);
 	}
 	
 }

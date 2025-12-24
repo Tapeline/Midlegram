@@ -79,4 +79,8 @@ public class Telegram {
 		client.sendTextMessage(chatId, message);
 	}
 	
+	public byte[] getFile(int id, String mimetype) throws IOException {
+		return client.getFile(id, mimetype);
+	}
+	
 }
