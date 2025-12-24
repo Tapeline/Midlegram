@@ -1,6 +1,7 @@
 package midp.tapeline.midlegram;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 import javax.microedition.lcdui.Display;
 import javax.microedition.midlet.MIDlet;

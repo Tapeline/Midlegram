@@ -181,11 +181,11 @@ public class MGClient {
 		DataOutputStream dos = null;
 		try {
 			conn = openSessionHttp("POST", "/api/chats/" + chatId + "/send/text");
-			byte[] bytes = message.getBytes();
+			byte[] bytes = message.getBytes("UTF-8");
 			conn.setRequestProperty("Content-Length", "" + bytes.length);
-			conn.setRequestProperty("Content-Type", "text/plain");
+			conn.setRequestProperty("Content-Type", "application/octet-stream");
 			dos = conn.openDataOutputStream();
-			dos.write(message.getBytes());
+			dos.write(bytes);
 			dos.flush();
 			assertRespOk(conn);
 			dis = conn.openDataInputStream();

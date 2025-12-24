@@ -16,10 +16,12 @@ public class ChatFolderListForm extends UIForm {
 	
 	Command exitCommand = new Command("Exit", Command.EXIT, 1);
 	Command searchCommand = new Command("Search", Command.SCREEN, 1);
+	Command aboutCommand = new Command("About", Command.SCREEN, 1);
 	
 	public ChatFolderListForm() {
 		super("Folders");
 		addCommand(searchCommand);
+		addCommand(aboutCommand);
 		addCommand(exitCommand);
 		setCommandListener(this);
 	}
@@ -48,6 +50,8 @@ public class ChatFolderListForm extends UIForm {
 			Midlegram.instance.exit();
 		} else if (cmd == searchCommand) {
 			UI.startForm(new SearchChatsForm());
+		} else if (cmd == aboutCommand) {
+			UI.startForm(new AboutForm());
 		}
 	}
 	

@@ -36,5 +36,11 @@ public class StringUtils {
 	         } 
 	     }
 	     return urlOK.toString();
-	 }
+	}
+	
+	public static String toMMSS(int seconds) {
+		int minutes = seconds / 60;
+		int sec = seconds % 60;
+		return "" + minutes + ":" + (sec < 10? "0" + sec : "" + sec);
+	}
 }
