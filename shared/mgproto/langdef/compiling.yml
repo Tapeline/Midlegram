@@ -1,26 +1,47 @@
 python_impl:
   path: py/serializers.py
   template: |
-    import struct
-    # following type_declarations attribute implement serialization 
-    # of given types using python's struct library
-    # use ">" parameter (big-endian option) when serializing with struct
-    # define a python function for each type that needs to be serialized:
-    # def serialize_$typename(parameters declared for specified type) -> bytes:
-    #     serialization...
-    # respect python's name convention: convert any camelCase to snake_case
+    <instruction>
+      following type_declarations attribute implement serialization 
+      ONLY OF SELECTED types located in "types" slot using python's struct library
+      use ">" parameter (big-endian option) when serializing with struct
+      define a python function for each type that needs to be serialized:
+      def serialize_$typename(parameters declared for specified type) -> bytes:
+          serialization...
+      if serializer parameters are represented by single entity (object of some class), then
+      get protocol type's field from fields of this entity.
+      respect python's name convention: convert any camelCase to snake_case
+      remove above comments
+    </instruction>
+    <code>
+      import struct
+    </code>
     
 
 j2me_impl:
   path: java/Deserializer.java
   template: |
-    # following the specified guide slot for the impl unit and type_declarations
-    # attribute implement serialization of given types using java's DataInputStream
-    import java.io.DataInputStream;
-    public class Deserializer {
-        DataInputStream dis;
-        public Deserializer(DataInputStream dis) {
-            this.dis = dis;
-        }
-        # here go deserialization methods
-    }
+    <instruction>
+      following the specified guide slot for the impl unit and type_declarations
+      attribute implement deserialization ONLY OF SELECTED TYPES located in "types" slot
+      using java's DataInputStream.
+      define a java public method for each type that needs to be serialized:
+      public <lang target type> read$typename() {
+          deserialize from `DataInputStream dis` field of this
+      }
+      for each target java type import it from "dataclasses_package_name" slot,
+      * import should not be present! Import each class separately.
+    </instruction>
+    <code>
+      import java.io.DataInputStream;
+    
+      public class Deserializer {
+          DataInputStream dis;
+      
+          public Deserializer(DataInputStream dis) {
+              this.dis = dis;
+          }
+      
+          // here go deserialization methods
+      }
+    </code>

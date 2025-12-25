@@ -78,3 +78,16 @@ py impl of {
     chats: list[Chat] -> ChatList;
     messages: list[Message] -> MessageList;
 }
+
+j2me impl of {
+    String -> java.lang.String;
+    Int -> int;
+    Id -> long;
+    Chat -> Chat;
+    ChatFolder -> ChatFolder;
+    Message -> Message;
+    MessageType -> int;
+    ChatFolderList -> Vector;
+    ChatList -> Vector;
+    MessageList -> Vector;
+} import from midp.tapeline.midlegram.client.data;

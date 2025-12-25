@@ -50,10 +50,13 @@ j2me_impl:
       mapping of declared type name to target language 
       type from which the serialization will happen 
       (in semi-free form, using actual target language type names)
+    dataclasses_package_name: |
+      package name where language specific types (results of deserialization)
+      reside and from where they should be imported
   pattern: |
-    py impl of {
+    j2me impl of {
       $type_1_type_name -> $type_1_lang_type;
       $type_2_type_name -> $type_2_lang_type;
       $type_n_type_name -> $type_n_lang_type;
       # where n >= 0
-    }
+    } import from $dataclasses_package_name;
