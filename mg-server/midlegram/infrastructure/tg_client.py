@@ -454,7 +454,7 @@ def _parse_message(msg: dict[str, Any]) -> Message:
             )
         )
     elif msg_type == MessageType.VIDEO_NOTE:
-        body_text = "(circ) " + content['caption']['text']
+        body_text = "(circ)"
         media.append(
             MessageMedia(
                 content['video_note']['mime_type'],
