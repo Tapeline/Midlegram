@@ -9,7 +9,7 @@ import midp.tapeline.midlegram.client.data.ChatFolder;
 
 public class Telegram {
 	
-	private static int MESSAGE_BATCH = 20;
+	private static int MESSAGE_BATCH = 5;
 	
 	MGClient client;
 	Hashtable chats;
@@ -46,6 +46,7 @@ public class Telegram {
 						new Long(((ChatFolder) folders.elementAt(i)).id), 
 						client.getChatsIds(((ChatFolder) folders.elementAt(i)).id)
 				);
+			foldersToChatIds.put(new Long(0), client.getChatsIds(0));
 		}
 		return folders;
 	}
@@ -56,6 +57,7 @@ public class Telegram {
 			!foldersToChatIds.containsKey(new Long(folderId))) 
 			getFolders();
 		Vector ids = (Vector) foldersToChatIds.get(new Long(folderId));
+		System.out.println("Folder " + folderId + " chats " + ids);
 		Vector folderChats = new Vector();
 		for (int i = 0; i < ids.size(); ++i)
 			folderChats.addElement(getChat((Long) ids.elementAt(i)));
@@ -78,5 +80,18 @@ public class Telegram {
 	public void sendTextMessage(long chatId, String message) throws IOException {
 		client.sendTextMessage(chatId, message);
 	}
+	
+	public byte[] getFile(int id, String mimetype) throws IOException {
+		return client.getFile(id, mimetype);
+	}
+	
+	public String getSessionKey() {
+		return client.getSessionKey();
+	}
+	
+	public Vector searchChats(String query, int limit) throws IOException {
+		return client.searchChats(query, limit);
+	}
+
 	
 }

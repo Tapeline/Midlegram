@@ -88,6 +88,20 @@ class MessengerClient(Protocol):
     def logout_and_stop(self) -> None:
         raise NotImplementedError
 
+    @abstractmethod
+    def stop(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_file_content(
+        self, file_id: int, timeout_s: int = 300
+    ) -> bytes:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def search_chats(self, query: str, limit: int) -> list[Chat]:
+        raise NotImplementedError
+
 
 class ClientStore(Protocol):
     @abstractmethod
@@ -99,7 +113,15 @@ class ClientStore(Protocol):
         raise NotImplementedError
 
     @abstractmethod
+    async def create_client_for_login(self, tok: SessionToken) -> MessengerClient:
+        raise NotImplementedError
+
+    @abstractmethod
     async def create_client(self, tok: SessionToken) -> MessengerClient:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def recreate_client(self, tok: SessionToken) -> MessengerClient:
         raise NotImplementedError
 
     @abstractmethod

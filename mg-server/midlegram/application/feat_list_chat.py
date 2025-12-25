@@ -58,3 +58,17 @@ class GetChat:
     ) -> Chat:
         tg = await self.store.get_client(self.session.get_token())
         return await tg.get_chat(chat_id)
+
+
+@interactor
+class SearchChats:
+    store: ClientStore
+    session: SessionProvider
+
+    async def __call__(
+        self,
+        query: str,
+        limit: int
+    ) -> list[Chat]:
+        tg = await self.store.get_client(self.session.get_token())
+        return await tg.search_chats(query, limit)

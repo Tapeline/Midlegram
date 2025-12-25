@@ -21,4 +21,26 @@ public class StringUtils {
 				+ " " + cal.get(Calendar.HOUR_OF_DAY) + ":" + cal.get(Calendar.MINUTE);
 	}
 	
+	public static String urlEncode(String sUrl) {
+	     StringBuffer urlOK = new StringBuffer();
+	     for (int i = 0; i < sUrl.length(); i++) {
+	         char ch = sUrl.charAt(i);
+	         switch (ch) {
+	             case '<': urlOK.append("%3C"); break;
+	             case '>': urlOK.append("%3E"); break;
+	             case '/': urlOK.append("%2F"); break;
+	             case ' ': urlOK.append("%20"); break;
+	             case ':': urlOK.append("%3A"); break;
+	             case '-': urlOK.append("%2D"); break;
+	             default: urlOK.append(ch); break;
+	         } 
+	     }
+	     return urlOK.toString();
+	}
+	
+	public static String toMMSS(int seconds) {
+		int minutes = seconds / 60;
+		int sec = seconds % 60;
+		return "" + minutes + ":" + (sec < 10? "0" + sec : "" + sec);
+	}
 }

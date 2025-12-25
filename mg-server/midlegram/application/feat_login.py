@@ -13,7 +13,7 @@ class StartAuth:
 
     async def __call__(self, phone: str) -> SessionToken:
         tok = await self.store.new_session()
-        tg = await self.store.get_client(tok)
+        tg = await self.store.create_client_for_login(tok)
         await tg.request_phone_auth(phone)
         return tok
 
@@ -25,7 +25,10 @@ class AuthWithCode:
 
     async def __call__(self, code: str) -> AuthCodeVerdict:
         tg = await self.store.get_client(self.session.get_token())
-        return await tg.is_auth_code_valid(code)
+        verdict = await tg.is_auth_code_valid(code)
+        if verdict == AuthCodeVerdict.OK:
+            await tg.connect_client()
+        return verdict
 
 
 @interactor
@@ -36,3 +39,4 @@ class AuthWith2FA:
     async def __call__(self, password: str) -> None:
         tg = await self.store.get_client(self.session.get_token())
         await tg.auth_with_2fa(password)
+        await tg.connect_client()

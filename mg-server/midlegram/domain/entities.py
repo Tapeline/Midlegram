@@ -41,6 +41,8 @@ class MessageType(StrEnum):
     PHOTO = "photo"
     VIDEO = "video"
     VOICE = "voice"
+    VIDEO_NOTE = "video_note"
+    AUDIO = "audio"
     UNKNOWN = "unknown"
 
 
@@ -51,7 +53,7 @@ class Message:
     sender_id: UserId
     date: datetime
     text: str
-    linked_media: list[MediaId]
+    media: "list[MessageMedia]"
 
     def with_sender(self, user: User) -> "MessageWithSender":
         return MessageWithSender(
@@ -60,7 +62,7 @@ class Message:
             sender=user,
             date=self.date,
             text=self.text,
-            linked_media=self.linked_media,
+            media=self.media,
         )
 
 
@@ -71,4 +73,11 @@ class MessageWithSender:
     sender: User
     date: datetime
     text: str
-    linked_media: list[MediaId]
+    media: "list[MessageMedia]"
+
+
+@entity
+class MessageMedia:
+    mimetype: str
+    file_id: int
+    size: int

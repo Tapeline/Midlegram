@@ -44,7 +44,7 @@ def _create_handler(handler_def: HandlerDef) -> LitestarErrHandler:
         extras = enricher(exc)
         if code is infer_code:
             code = inflection.underscore(exc.__class__.__name__)
-        return ans_err(f"{code}, {extras}")
+        return ans_err(code)
 
     return handler_func
 

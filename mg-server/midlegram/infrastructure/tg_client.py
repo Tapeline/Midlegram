@@ -3,6 +3,7 @@ from contextlib import suppress
 from dataclasses import dataclass, field
 import asyncio
 from datetime import datetime
+import time
 
 from structlog import BoundLogger, getLogger
 from pathlib import Path
@@ -14,7 +15,7 @@ from telegram.utils import AsyncResult
 from midlegram.application.client import AuthCodeVerdict, MessengerClient
 from midlegram.application.exceptions import (
     InvalidAuthCode,
-    UnknownClientError,
+    TelegramSessionExpired, UnknownClientError,
     Wrong2FAPassword,
 )
 from midlegram.application.pagination import Pagination
@@ -24,7 +25,7 @@ from midlegram.domain.entities import (
     ChatFolder,
     ChatFolderId, ChatId,
     Message,
-    MessageId, MessageType, User, UserId,
+    MessageMedia, MessageId, MessageType, User, UserId,
 )
 from midlegram.infrastructure.client_store import ClientFactory
 
@@ -58,6 +59,8 @@ async def wait_tg(result: AsyncResult) -> AsyncResult:
 
 def ensure_no_error(result: AsyncResult) -> AsyncResult:
     if result.error:
+        if result.error_info["code"] == 401:
+            raise TelegramSessionExpired
         logger.error("Unknown client error: %s", result.error_info)
         raise UnknownClientError(result.error_info)
     return result
@@ -130,6 +133,9 @@ class TelegramClient(MessengerClient):
         self._chats_in_folders[ChatFolderId(0)] = list(
             await asyncio.gather(*map(self._load_chat, all_chats))
         )
+        self._folder_chat_ids[ChatFolderId(0)] = [
+            chat.id for chat in self._chats_in_folders[ChatFolderId(0)]
+        ]
         for chats in self._chats_in_folders.values():
             for chat in chats:
                 self._chats[chat.id] = chat
@@ -224,12 +230,16 @@ class TelegramClient(MessengerClient):
         folder_id: ChatFolderId,
         pagination: Pagination
     ) -> list[ChatId]:
-        return self._folder_chat_ids.get(folder_id, [])
+        return self._folder_chat_ids.get(folder_id, [])[
+            pagination.offset:pagination.offset + pagination.limit
+        ]
 
     async def get_chat_folders(self) -> list[ChatFolder]:
         return self._folders
 
     async def get_chat(self, chat_id: ChatId) -> Chat:
+        if chat_id not in self._chats:
+            self._chats[chat_id] = await self._load_chat(chat_id)
         return self._chats[chat_id]
 
     async def wait_for_messages(self, timeout_s: int) -> list[Message]:
@@ -317,6 +327,9 @@ class TelegramClient(MessengerClient):
     def logout_and_stop(self) -> None:
         logger.info("Logging out")
         self.tg.call_method('logOut', {})
+        self.stop()
+
+    def stop(self) -> None:
         self.tg.stop()
 
     async def get_user(self, user_id: UserId) -> User:
@@ -335,6 +348,59 @@ class TelegramClient(MessengerClient):
             handle=handle,
         )
 
+    async def get_file_content(
+        self, file_id: int, timeout_s: int = 300
+    ) -> bytes:
+        logger.info("Requesting file download", file_id=file_id)
+        result = ensure_no_error(
+            await wait_tg(
+                self.tg.call_method(
+                    'downloadFile',
+                    {
+                        'file_id': file_id,
+                        'priority': 1,
+                        'offset': 0,
+                        'limit': 0,
+                        'synchronous': False
+                    }
+                )
+            )
+        )
+        file_info = result.update
+        if file_info.get('local', {}).get('is_downloading_completed'):
+            return self._read_file_bytes(file_info)
+        start_time = asyncio.get_running_loop().time()
+        while (asyncio.get_running_loop().time() - start_time) < timeout_s:
+            await asyncio.sleep(0.5)
+            result = ensure_no_error(
+                await wait_tg(
+                    self.tg.call_method('getFile', {'file_id': file_id})
+                )
+            )
+            file_info = result.update
+            if file_info.get('local', {}).get('is_downloading_completed'):
+                return self._read_file_bytes(file_info)
+        raise TimeoutError(
+            f"File {file_id} did not download within {timeout_s} seconds"
+        )
+
+    def _read_file_bytes(self, file_info: dict[str, Any]) -> bytes:
+        path_str = file_info['local']['path']
+        if not path_str:
+            raise UnknownClientError(
+                {"type": "File path is empty", "info": file_info}
+            )
+        return Path(path_str).read_bytes()
+
+    async def search_chats(self, query: str, limit: int) -> list[Chat]:
+        chats = ensure_no_error(await wait_tg(self.tg.call_method(
+            "searchChatsOnServer",
+            {"query": query, "limit": limit}
+        )))
+        return list(await asyncio.gather(*map(
+            self.get_chat, chats.update["chat_ids"]
+        )))
+
 
 def _parse_message(msg: dict[str, Any]) -> Message:
     content = msg["content"]
@@ -343,17 +409,71 @@ def _parse_message(msg: dict[str, Any]) -> Message:
         "messagePhoto": MessageType.PHOTO,
         "messageVideo": MessageType.VIDEO,
         "messageVoiceNote": MessageType.VOICE,
+        "messageAudio": MessageType.AUDIO,
+        "messageVideoNote": MessageType.VIDEO_NOTE,
     }.get(
         content["@type"], MessageType.UNKNOWN
     )
+    media = []
     if msg_type == MessageType.TEXT:
         body_text = content['text']['text']
     elif msg_type == MessageType.PHOTO:
         body_text = "(img) " + content['caption']['text']
+        photo_size = content["photo"]["sizes"][0]
+        for photo_var in content["photo"]["sizes"]:
+            if photo_var["type"] == "m":  # 320x320
+                photo_size = photo_var
+                break
+        media.append(
+            MessageMedia(
+                "image/png",
+                photo_size['photo']['id'],
+                photo_size['photo']['size'],
+            )
+        )
     elif msg_type == MessageType.VIDEO:
         body_text = "(vid) " + content['caption']['text']
+        media.append(
+            MessageMedia(
+                content['video']['mime_type'],
+                content['video']['video']['id'],
+                content['video']['video']['size'],
+            )
+        )
     elif msg_type == MessageType.VOICE:
-        body_text = "(voice)"
+        body_text = (
+            "(voice) " + time.strftime(
+                '%M:%S', time.gmtime(content["voice_note"]["duration"])
+            )
+        )
+        media.append(
+            MessageMedia(
+                content['voice_note']['mime_type'],
+                content['voice_note']['voice']['id'],
+                content['voice_note']['voice']['size'],
+            )
+        )
+    elif msg_type == MessageType.VIDEO_NOTE:
+        body_text = "(circ) " + content['caption']['text']
+        media.append(
+            MessageMedia(
+                content['video_note']['mime_type'],
+                content['video_note']['video']['id'],
+                content['video_note']['video']['size'],
+            )
+        )
+    elif msg_type == MessageType.AUDIO:
+        body_text = (
+            "(audio) " + content['audio']['performer'] +
+            " — " + content['audio']['title']
+        )
+        media.append(
+            MessageMedia(
+                content['audio']['mime_type'],
+                content['audio']['audio']['id'],
+                content['audio']['audio']['size'],
+            )
+        )
     else:
         body_text = "(unknown)"
     sender_id = 0
@@ -365,24 +485,15 @@ def _parse_message(msg: dict[str, Any]) -> Message:
         date=datetime.fromtimestamp(msg['date']),
         type=msg_type,
         text=body_text,
-        linked_media=[]
+        media=media,
     )
 
 
 def _parse_chat(update: dict[str, Any]):
-    if last_msg := update.get("last_message"):
-        if last_msg["content"]["@type"] == "messageText":
-            last_msg = last_msg["content"]["text"]["text"]
-        elif last_msg["content"]["@type"] == "messagePhoto":
-            last_msg = "(img) " + last_msg["content"]["caption"]["text"]
-        elif last_msg["content"]["@type"] == "messageVideo":
-            last_msg = "(vid) " + last_msg["content"]["caption"]["text"]
-        elif last_msg["content"]["@type"] == "messageVoiceNote":
-            last_msg = "(voice)"
-        elif last_msg["content"]["@type"] == "messageAudio":
-            last_msg = "(audio)"
-        else:
-            last_msg = "(unknown)"
+    last_msg = ""
+    if msg := update.get("last_message"):
+        msg = _parse_message(msg)
+        last_msg = msg.text
     return Chat(
         id=update["id"],
         title=update.get("title", "Unknown"),

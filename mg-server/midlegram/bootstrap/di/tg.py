@@ -3,11 +3,12 @@ from dishka import Provider, Scope, provide, provide_all
 from litestar import Request
 
 from midlegram.application.client import ClientStore
-from midlegram.application.feat_connect import ConnectClient
+from midlegram.application.feat_connect import ConnectClient, ReconnectClient
+from midlegram.application.feat_get_media import GetMedia
 from midlegram.application.feat_list_chat import (
     GetChat,
     ListChatFolders,
-    ListChats, ListChatsIds,
+    ListChats, ListChatsIds, SearchChats,
 )
 from midlegram.application.feat_login import (
     AuthWith2FA,
@@ -44,6 +45,9 @@ class TgDIProvider(Provider):
         ConnectClient,
         GetChat,
         ListChatsIds,
+        ReconnectClient,
+        GetMedia,
+        SearchChats,
         scope=Scope.REQUEST,
     )
 

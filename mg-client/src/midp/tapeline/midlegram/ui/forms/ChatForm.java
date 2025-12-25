@@ -103,7 +103,7 @@ public class ChatForm extends UIForm {
 						new Message(
 								0L, (byte) 0, 
 								(int) (Calendar.getInstance().getTime().getTime() / 1000), 
-								0, msgInput.getString(), "Me", "?"
+								0, msgInput.getString(), "Me", "?", new Vector()
 						), this)
 				);
 				msgInput.setString("");

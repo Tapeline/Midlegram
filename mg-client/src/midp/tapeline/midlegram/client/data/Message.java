@@ -1,5 +1,7 @@
 package midp.tapeline.midlegram.client.data;
 
+import java.util.Vector;
+
 public class Message {
 
 	public static final byte TEXT = 0;
@@ -15,13 +17,14 @@ public class Message {
 	public final String text;
 	public final String authorName;
 	public final String authorHandle;
+	public final Vector media;
 	
 	public Message(long id, byte type, int time, long author_id, String text) {
-		this(id, type, time, author_id, text, "User " + id, "?");
+		this(id, type, time, author_id, text, "User " + id, "?", new Vector());
 	}
 	
 	public Message(long id, byte type, int time, long author_id, 
-			String text, String authorName, String authorHandle) {
+			String text, String authorName, String authorHandle, Vector media) {
 		super();
 		this.id = id;
 		this.type = type;
@@ -30,6 +33,7 @@ public class Message {
 		this.text = text;
 		this.authorHandle = authorHandle;
 		this.authorName = authorName;
+		this.media = media;
 	}
 	
 	public String toString() {

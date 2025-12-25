@@ -11,7 +11,7 @@ import midp.tapeline.midlegram.Midlegram;
 public class UI {
 
 	private static Vector formStack = new Vector();
-	private static Alert currentAlert = null;
+	public static Alert currentAlert = null;
 	
 	public static UIForm currentForm() {
 		if (formStack.size() == 0)

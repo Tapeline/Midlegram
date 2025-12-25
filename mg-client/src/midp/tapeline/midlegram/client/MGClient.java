@@ -10,6 +10,7 @@ import javax.microedition.io.Connector;
 import javax.microedition.io.HttpConnection;
 
 import midp.tapeline.midlegram.ArrayUtils;
+import midp.tapeline.midlegram.StringUtils;
 import midp.tapeline.midlegram.client.data.Chat;
 
 public class MGClient {
@@ -20,6 +21,10 @@ public class MGClient {
 	public MGClient(String url, String sessionKey) {
 		this.url = url;
 		this.sessionKey = sessionKey;
+	}
+	
+	public String getSessionKey() {
+		return sessionKey;
 	}
 	
 	public void startAuth(String phone) throws IOException {
@@ -79,7 +84,7 @@ public class MGClient {
 		HttpConnection conn = null;
 		DataInputStream dis = null;
 		try {
-			conn = openSessionHttp("GET", "/api/folders/" + folderId + "/chats_ids");
+			conn = openSessionHttp("GET", "/api/folders/" + folderId + "/chats_ids?limit=1000");
 			assertRespOk(conn);
 			dis = conn.openDataInputStream();
 			Deserializer des = new Deserializer(dis);
@@ -95,7 +100,7 @@ public class MGClient {
 		HttpConnection conn = null;
 		DataInputStream dis = null;
 		try {
-			conn = openSessionHttp("GET", "/api/folders/" + folderId + "/chats");
+			conn = openSessionHttp("GET", "/api/folders/" + folderId + "/chats?limit=1000");
 			assertRespOk(conn);
 			dis = conn.openDataInputStream();
 			Deserializer des = new Deserializer(dis);
@@ -176,11 +181,11 @@ public class MGClient {
 		DataOutputStream dos = null;
 		try {
 			conn = openSessionHttp("POST", "/api/chats/" + chatId + "/send/text");
-			byte[] bytes = message.getBytes();
+			byte[] bytes = message.getBytes("UTF-8");
 			conn.setRequestProperty("Content-Length", "" + bytes.length);
-			conn.setRequestProperty("Content-Type", "text/plain");
+			conn.setRequestProperty("Content-Type", "application/octet-stream");
 			dos = conn.openDataOutputStream();
-			dos.write(message.getBytes());
+			dos.write(bytes);
 			dos.flush();
 			assertRespOk(conn);
 			dis = conn.openDataInputStream();
@@ -189,6 +194,39 @@ public class MGClient {
 		} finally { 
 			if (dis != null) dis.close(); 
 			if (dos != null) dos.close(); 
+			if (conn != null) conn.close();
+		}
+	}
+	
+	public byte[] getFile(int id, String mimetype) throws IOException {
+		HttpConnection conn = null;
+		DataInputStream dis = null;
+		try {
+			conn = openSessionHttp("GET", "/api/file/" + id + "?mime=" + mimetype);
+			assertRespOk(conn);
+			dis = conn.openDataInputStream();
+			int length = conn.getHeaderFieldInt("Content-Length", 0);
+			byte[] content = new byte[length];
+			dis.readFully(content);
+			return content;
+		} finally { 
+			if (dis != null) dis.close(); 
+			if (conn != null) conn.close();
+		}
+	}
+	
+	public Vector searchChats(String query, int limit) throws IOException {
+		HttpConnection conn = null;
+		DataInputStream dis = null;
+		try {
+			conn = openSessionHttp("GET", "/api/chats/search?q=" + StringUtils.urlEncode(query) + "&limit=" + limit);
+			assertRespOk(conn);
+			dis = conn.openDataInputStream();
+			Deserializer des = new Deserializer(dis);
+			assertOpSuccess(des.readOperationSuccess());
+			return des.readChatList();
+		} finally { 
+			if (dis != null) dis.close(); 
 			if (conn != null) conn.close();
 		}
 	}
