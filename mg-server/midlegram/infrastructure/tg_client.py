@@ -636,6 +636,9 @@ def _parse_message(msg: dict[str, Any]) -> Message:
     sender_id = 0
     if 'sender_id' in msg and 'user_id' in msg['sender_id']:
         sender_id = msg['sender_id']['user_id']
+    in_reply_to = None
+    if msg.get("reply_to") and msg["reply_to"]["@type"] == "messageReplyToMessage":
+        in_reply_to = msg["message_id"]
     return Message(
         id=msg["id"],
         sender_id=sender_id,
@@ -643,6 +646,7 @@ def _parse_message(msg: dict[str, Any]) -> Message:
         type=msg_type,
         text=body_text,
         media=media,
+        in_reply_to=in_reply_to,
     )
 
 

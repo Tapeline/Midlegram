@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import midp.tapeline.midlegram.client.data.Chat;
-import midp.tapeline.midlegram.client.data.ChatFolder;
-
 public class Telegram {
 	
 	private static int MESSAGE_BATCH = 5;

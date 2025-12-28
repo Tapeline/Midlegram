@@ -67,7 +67,7 @@ public class ChatForm extends UIForm {
 				append(new MessageItem((Message) messages.elementAt(i), this));
 			if (currentAnchor != 0) append(nextButton);
 			append(msgInput); 
-			Display.getDisplay(Midlegram.instance).setCurrentItem(msgInput);
+			scrollToBottom();
 		} catch (IOException exc) {
 			UI.alertFatal(exc);
 		} finally {
@@ -119,7 +119,8 @@ public class ChatForm extends UIForm {
 						new Message(
 								0L, (byte) 0, 
 								(int) (Calendar.getInstance().getTime().getTime() / 1000), 
-								0, msgInput.getString(), "Me", "?", new Vector()
+								0, msgInput.getString(), "Me", "?", new Vector(), 
+								replyTo == null? null : new Long(replyTo.id)
 						), this)
 				);
 				msgInput.setString("");
@@ -129,6 +130,21 @@ public class ChatForm extends UIForm {
 		} else if (cmd == noReply) {
 			setReplyTo(null);
 		}
+	}
+	
+	public void goToMsg(long msgId) {
+		if (anchors.size() == 1)
+			anchors.addElement(new Long(msgId));
+		else for (int i = 1; i < anchors.size(); ++i)
+			if (((Long) anchors.elementAt(i)).longValue() < msgId) {
+				anchors.insertElementAt(new Long(msgId), i);
+				currentAnchor = i;
+			}
+		new Thread(new Runnable() {
+			public void run() {
+				reloadMessages();
+			}
+		}).start(); 
 	}
 	
 

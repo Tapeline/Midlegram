@@ -115,7 +115,11 @@ public class Deserializer {
 			System.out.println("medialen " + len);
 			Vector media = new Vector();
 			for (int j = 0; j < mediaLen; ++j) media.addElement(readMedia());
-			msgs.addElement(new Message(id, type, time, senderId, text, authorName, authorHandle, media));
+			boolean hasReply = dis.readBoolean();
+			Long inReplyTo = null;
+			if (hasReply)
+				inReplyTo = new Long(dis.readLong());
+			msgs.addElement(new Message(id, type, time, senderId, text, authorName, authorHandle, media, inReplyTo));
 		}
 		return msgs;
 	}

@@ -67,7 +67,8 @@ def serialize_message_with_sender(message: MessageWithSender) -> bytes:
     ) + serialize_str(message.sender.name) + \
         serialize_str(message.sender.handle) + \
         serialize_str(message.text) + \
-        serialize_list(serialize_message_media, message.media)
+        serialize_list(serialize_message_media, message.media) + \
+        serialize_optional(serialize_i64, message.in_reply_to)
 
 
 def serialize_chat(chat: Chat) -> bytes:
@@ -96,3 +97,9 @@ def serialize_i64(i64: int) -> bytes:
 def serialize_message_media(media: MessageMedia) -> bytes:
     return serialize_str(media.mimetype) + \
         struct.pack(">iq", media.file_id, media.size)
+
+
+def serialize_optional(serializer, data) -> bytes:
+    return struct.pack(">?", data is not None) + (
+        serializer(data) if data is not None else b""
+    )

@@ -2,15 +2,19 @@ package midp.tapeline.midlegram.ui;
 
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
+import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Form;
 import javax.microedition.lcdui.Item;
 import javax.microedition.lcdui.ItemCommandListener;
+import javax.microedition.lcdui.StringItem;
 
+import midp.tapeline.midlegram.Midlegram;
 import midp.tapeline.midlegram.ui.components.LoadingItem;
 
 public abstract class UIForm extends Form implements CommandListener, ItemCommandListener {
 
+	private StringItem bottomAnchor;
 	protected Command backCommand;
 	private LoadingItem loading;
 	
@@ -62,5 +66,22 @@ public abstract class UIForm extends Form implements CommandListener, ItemComman
 	public void deleteAll() {
 		setLoading(false);
 		super.deleteAll();
+	}
+	
+	public void scrollToBottom() {
+		if (bottomAnchor == null) {
+			bottomAnchor = new StringItem(null, ""); 
+	        bottomAnchor.setLayout(Item.LAYOUT_SHRINK | Item.LAYOUT_NEWLINE_BEFORE); 
+		}
+	    append(bottomAnchor);
+	    Display.getDisplay(Midlegram.instance).setCurrentItem(bottomAnchor);
+	    new Thread(new Runnable() {
+	    	public void run() {
+	    		try {
+					Thread.sleep(50);
+				} catch (InterruptedException ignored) {}
+	    		UIForm.this.delete(UIForm.this.size() - 1);
+	    	}
+	    }).start();
 	}
 }

@@ -54,6 +54,7 @@ class Message:
     date: datetime
     text: str
     media: "list[MessageMedia]"
+    in_reply_to: MessageId | None = None
 
     def with_sender(self, user: User) -> "MessageWithSender":
         return MessageWithSender(
@@ -63,6 +64,7 @@ class Message:
             date=self.date,
             text=self.text,
             media=self.media,
+            in_reply_to=self.in_reply_to,
         )
 
 
@@ -74,6 +76,7 @@ class MessageWithSender:
     date: datetime
     text: str
     media: "list[MessageMedia]"
+    in_reply_to: MessageId | None = None
 
 
 @entity

@@ -25,6 +25,7 @@ public class MessageItem extends StringItem implements ItemCommandListener {
 	ChatForm form;
 	Command viewMedia;
 	Command reply;
+	Command goToRe;
 	
 	public MessageItem(Message message, ChatForm form) {
 		super(message.authorName, message.text + "\n" + 
@@ -34,7 +35,10 @@ public class MessageItem extends StringItem implements ItemCommandListener {
 		setLayout(Item.LAYOUT_EXPAND);
 		setItemCommandListener(this);
 		reply = new Command("Reply", Command.SCREEN, 1);
+		goToRe = new Command("Navigate to preceding", Command.SCREEN, 1);
 		addCommand(reply);
+		if (message.inReplyTo != null)
+			addCommand(goToRe);
 		if (message.media.size() != 0) {
 			viewMedia = new Command("View media", Command.SCREEN, 1);
 			addCommand(viewMedia);
@@ -47,6 +51,8 @@ public class MessageItem extends StringItem implements ItemCommandListener {
 			UI.startForm(new MediaForm((Media) message.media.elementAt(0)));
 		} else if (cmd == reply) {
 			form.setReplyTo(message);
+		} else if (cmd == goToRe) {
+			form.goToMsg(message.inReplyTo.longValue());
 		}
 	}
 	

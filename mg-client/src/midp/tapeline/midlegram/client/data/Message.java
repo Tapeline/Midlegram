@@ -18,13 +18,14 @@ public class Message {
 	public final String authorName;
 	public final String authorHandle;
 	public final Vector media;
+	public final Long inReplyTo;
 	
 	public Message(long id, byte type, int time, long author_id, String text) {
-		this(id, type, time, author_id, text, "User " + id, "?", new Vector());
+		this(id, type, time, author_id, text, "User " + id, "?", new Vector(), null);
 	}
 	
 	public Message(long id, byte type, int time, long author_id, 
-			String text, String authorName, String authorHandle, Vector media) {
+			String text, String authorName, String authorHandle, Vector media, Long inReplyTo) {
 		super();
 		this.id = id;
 		this.type = type;
@@ -34,10 +35,11 @@ public class Message {
 		this.authorHandle = authorHandle;
 		this.authorName = authorName;
 		this.media = media;
+		this.inReplyTo = inReplyTo;
 	}
 	
 	public String toString() {
-		return "(" + time + ") " + text;
+		return text;
 	}
 	
 }
