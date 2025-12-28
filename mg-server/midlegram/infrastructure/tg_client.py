@@ -448,12 +448,12 @@ class TelegramClient(MessengerClient):
                 "message_id": int(reply_to),
                 "@type": "inputMessageReplyToMessage"
             }
-        if type == "photo":
+        if media_type == "photo":
             content = {
                 '@type': 'inputMessagePhoto',
                 'photo': {'@type': 'inputFileLocal', 'path': str(tmp_path)}
             }
-        elif type == "voice_note":
+        elif media_type == "voice_note":
             content = {
                 '@type': 'inputMessageVoiceNote',
                 'voice_note': {
@@ -461,12 +461,12 @@ class TelegramClient(MessengerClient):
                     'path': str(tmp_path)
                 }
             }
-        elif type == "video":
+        elif media_type == "video":
             content = {
                 '@type': 'inputMessageVideo',
                 'video': {'@type': 'inputFileLocal', 'path': str(tmp_path)}
             }
-        elif type == "video_note":
+        elif media_type == "video_note":
             content = {
                 '@type': 'inputMessageVideoNote',
                 'video_note': {

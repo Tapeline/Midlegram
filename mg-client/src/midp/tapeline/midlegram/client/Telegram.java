@@ -59,6 +59,10 @@ public class Telegram {
 		client.sendTextMessage(chatId, replyTo, message);
 	}
 	
+	public void sendFileMessage(long chatId, long replyTo, String type, byte[] data) throws IOException {
+		client.sendFileMessage(chatId, replyTo, type, data);
+	}
+	
 	public byte[] getFile(int id, String mimetype) throws IOException {
 		return client.getFile(id, mimetype);
 	}

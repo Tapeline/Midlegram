@@ -239,6 +239,30 @@ public class MGClient {
 		}
 	}
 
+	public void sendFileMessage(long chatId, long replyTo, String type, byte[] data) throws IOException {
+		HttpConnection conn = null;
+		DataInputStream dis = null;
+		DataOutputStream dos = null;
+		String path = "/api/chats/" + chatId + "/send/file/" + type;
+		if (replyTo != 0) path += "?reply=" + replyTo;
+		try {
+			conn = openSessionHttp("POST", path);
+			conn.setRequestProperty("Content-Length", "" + data.length);
+			conn.setRequestProperty("Content-Type", "application/octet-stream");
+			dos = conn.openDataOutputStream();
+			dos.write(data);
+			dos.flush();
+			assertRespOk(conn);
+			dis = conn.openDataInputStream();
+			Deserializer des = new Deserializer(dis);
+			assertOpSuccess(des.readOperationSuccess());
+		} finally { 
+			if (dis != null) dis.close(); 
+			if (dos != null) dos.close(); 
+			if (conn != null) conn.close();
+		}
+	}
+	
 	private HttpConnection openSessionHttp(String method, String path) throws IOException {
 		HttpConnection conn = (HttpConnection) Connector.open(url + path, Connector.READ_WRITE, true);
 		conn.setRequestProperty("Authorization", sessionKey);
