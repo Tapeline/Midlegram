@@ -477,22 +477,18 @@ class TelegramClient(MessengerClient):
             }
         else:
             raise UnknownMediaType
-        try:
-            tmp_path.write_bytes(contents)
-            await asyncio.sleep(1)
-            ensure_no_error(
-                await wait_tg(
-                    self.tg.call_method(
-                        'sendMessage', {
-                            'chat_id': chat_id,
-                            'input_message_content': content,
-                            **opts,
-                        }
-                    )
+        tmp_path.write_bytes(contents)
+        ensure_no_error(
+            await wait_tg(
+                self.tg.call_method(
+                    'sendMessage', {
+                        'chat_id': chat_id,
+                        'input_message_content': content,
+                        **opts,
+                    }
                 )
             )
-        finally:
-            tmp_path.unlink()
+        )
 
     def logout_and_stop(self) -> None:
         logger.info("Logging out")
