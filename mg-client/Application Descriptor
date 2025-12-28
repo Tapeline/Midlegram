@@ -6,7 +6,7 @@ MIDlet-Icon: /icon.png
 MicroEdition-Configuration: CLDC-1.1
 Nokia-Scalable-Icon-MIDlet-1: /icon.svg
 Nokia-Scalable-Icon: /icon.svg
-MIDlet-Version: 1.1.2
+MIDlet-Version: 1.2
 MIDlet-Vendor: Tapeline
 MIDlet-Name: Midlegram
 MicroEdition-Profile: MIDP-2.1
