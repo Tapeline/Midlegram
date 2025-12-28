@@ -445,6 +445,7 @@ class TelegramClient(MessengerClient):
         opts = {}
         tmp_path = Path(self.config.storage.media_path, str(uuid.uuid4()))
         tmp_path.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path.write_bytes(contents)
         if reply_to:
             opts["reply_to"] = {
                 "message_id": int(reply_to),
@@ -480,7 +481,6 @@ class TelegramClient(MessengerClient):
             }
         else:
             raise UnknownMediaType
-        tmp_path.write_bytes(contents)
         ensure_no_error(
             await wait_tg(
                 self.tg.call_method(
