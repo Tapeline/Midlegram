@@ -133,12 +133,15 @@ public class ChatForm extends UIForm {
 	}
 	
 	public void goToMsg(long msgId) {
-		if (anchors.size() == 1)
+		if (anchors.size() == 1) {
 			anchors.addElement(new Long(msgId));
-		else for (int i = 1; i < anchors.size(); ++i)
+			currentAnchor = 1;
+		} else for (int i = 1; i < anchors.size(); ++i)
 			if (((Long) anchors.elementAt(i)).longValue() < msgId) {
+				System.out.print("Going from " + anchors.elementAt(currentAnchor) + " to " + msgId + "=");
 				anchors.insertElementAt(new Long(msgId), i);
 				currentAnchor = i;
+				System.out.println("" + anchors.elementAt(currentAnchor));
 			}
 		new Thread(new Runnable() {
 			public void run() {

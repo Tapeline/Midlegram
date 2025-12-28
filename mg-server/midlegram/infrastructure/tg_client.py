@@ -414,7 +414,10 @@ class TelegramClient(MessengerClient):
         logger.info("Sending text", chat_id=chat_id)
         opts = {}
         if reply_to:
-            opts["reply_to"] = {"message_id": int(reply_to)}
+            opts["reply_to"] = {
+                "message_id": int(reply_to),
+                "@type": "inputMessageReplyToMessage"
+            }
         ensure_no_error(
             await wait_tg(
                 self.tg.call_method(
@@ -441,7 +444,10 @@ class TelegramClient(MessengerClient):
         opts = {}
         tmp_path = Path(self.config.storage.media_path, str(uuid.uuid4()))
         if reply_to:
-            opts["reply_to"] = {"message_id": int(reply_to)}
+            opts["reply_to"] = {
+                "message_id": int(reply_to),
+                "@type": "inputMessageReplyToMessage"
+            }
         if type == "photo":
             content = {
                 '@type': 'inputMessagePhoto',
@@ -450,7 +456,10 @@ class TelegramClient(MessengerClient):
         elif type == "voice_note":
             content = {
                 '@type': 'inputMessageVoiceNote',
-                'voice_note': {'@type': 'inputFileLocal', 'path': str(tmp_path)}
+                'voice_note': {
+                    '@type': 'inputFileLocal',
+                    'path': str(tmp_path)
+                }
             }
         elif type == "video":
             content = {
@@ -460,7 +469,10 @@ class TelegramClient(MessengerClient):
         elif type == "video_note":
             content = {
                 '@type': 'inputMessageVideoNote',
-                'video_note': {'@type': 'inputFileLocal', 'path': str(tmp_path)}
+                'video_note': {
+                    '@type': 'inputFileLocal',
+                    'path': str(tmp_path)
+                }
             }
         else:
             raise UnknownMediaType
@@ -637,7 +649,8 @@ def _parse_message(msg: dict[str, Any]) -> Message:
     if 'sender_id' in msg and 'user_id' in msg['sender_id']:
         sender_id = msg['sender_id']['user_id']
     in_reply_to = None
-    if msg.get("reply_to") and msg["reply_to"]["@type"] == "messageReplyToMessage":
+    if msg.get("reply_to") and msg["reply_to"][
+        "@type"] == "messageReplyToMessage":
         in_reply_to = msg["reply_to"]["message_id"]
     return Message(
         id=msg["id"],
