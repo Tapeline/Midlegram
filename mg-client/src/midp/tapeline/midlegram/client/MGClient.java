@@ -4,10 +4,12 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Vector;
 
 import javax.microedition.io.Connector;
 import javax.microedition.io.HttpConnection;
+import javax.microedition.io.file.FileConnection;
 
 import midp.tapeline.midlegram.ArrayUtils;
 import midp.tapeline.midlegram.StringUtils;
@@ -260,6 +262,37 @@ public class MGClient {
 			if (dis != null) dis.close(); 
 			if (dos != null) dos.close(); 
 			if (conn != null) conn.close();
+		}
+	}
+	
+	public void sendFileMessage(long chatId, long replyTo, String type, String file) throws IOException {
+		HttpConnection conn = null;
+		DataInputStream dis = null;
+		DataOutputStream dos = null;
+		InputStream fis = null;
+		FileConnection fc = null;
+		String path = "/api/chats/" + chatId + "/send/file/" + type;
+		if (replyTo != 0) path += "?reply=" + replyTo;
+		try {
+			fc = (FileConnection) Connector.open(file, Connector.READ);
+			fis = fc.openInputStream();
+			conn = openSessionHttp("POST", path);
+			conn.setRequestProperty("Content-Length", "" + fc.fileSize());
+			conn.setRequestProperty("Content-Type", "application/octet-stream");
+			dos = conn.openDataOutputStream();
+			for (long i = 0; i < fc.fileSize(); i++)
+				dos.write(fis.read());
+			dos.flush();
+			assertRespOk(conn);
+			dis = conn.openDataInputStream();
+			Deserializer des = new Deserializer(dis);
+			assertOpSuccess(des.readOperationSuccess());
+		} finally { 
+			if (dis != null) dis.close(); 
+			if (dos != null) dos.close(); 
+			if (conn != null) conn.close();
+			if (fis != null) fis.close();
+			if (fc != null) fc.close();
 		}
 	}
 	

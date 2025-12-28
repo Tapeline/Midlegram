@@ -17,6 +17,8 @@ import midp.tapeline.midlegram.client.data.AttachedMedia;
 import midp.tapeline.midlegram.client.data.Chat;
 import midp.tapeline.midlegram.client.data.Media;
 import midp.tapeline.midlegram.client.data.Message;
+import midp.tapeline.midlegram.ui.FileBrowser;
+import midp.tapeline.midlegram.ui.FileBrowser.FileSelectListener;
 import midp.tapeline.midlegram.ui.UI;
 import midp.tapeline.midlegram.ui.UIForm;
 import midp.tapeline.midlegram.ui.components.ChatItem;
@@ -35,6 +37,7 @@ public class ChatForm extends UIForm {
 	Command send = new Command("Send", Command.SCREEN, 1);
 	Command noReply = new Command("Do not reply", Command.SCREEN, 1);
 	Command attachVoice = new Command("Attach voice", Command.SCREEN, 1);
+	Command attachPhoto = new Command("Attach photo", Command.SCREEN, 1);
 	StringItem prevButton = new StringItem("", "Earlier", Item.BUTTON);
 	StringItem nextButton = new StringItem("", "Later", Item.BUTTON);
 	TextField msgInput = new TextField("New message", "", 1000, TextField.ANY);
@@ -138,7 +141,10 @@ public class ChatForm extends UIForm {
 			for (int i = 0; i < mediaToSend.size(); ++i) {
 				AttachedMedia media = (AttachedMedia) mediaToSend.elementAt(i);
 				try {
-					Services.tg.sendFileMessage(chat.id, replyTo == null? 0 : replyTo.id, media.type, media.data);
+					if (media.file != null)
+						Services.tg.sendFileMessage(chat.id, replyTo == null? 0 : replyTo.id, media.type, media.file);
+					else
+						Services.tg.sendFileMessage(chat.id, replyTo == null? 0 : replyTo.id, media.type, media.data);
 					insert(size() - 1, new MessageItem(
 							new Message(
 									0L, (byte) 0, 
@@ -147,22 +153,36 @@ public class ChatForm extends UIForm {
 									replyTo == null? null : new Long(replyTo.id)
 							), this)
 					);
-					for (int j = 0; j < size(); ++i) {
-						if (get(j) instanceof QueuedMediaItem && ((QueuedMediaItem) get(j)).media == media) {
-							delete(j);
-							break;
-						}
-					}
 				} catch (IOException e) {
 					UI.alertFatal(e);
 				}
 			}
 			mediaToSend.removeAllElements();
+			new Thread(new Runnable() {
+				public void run() {
+					reloadMessages();
+				}
+			}).start(); 
 		} else if (cmd == noReply) {
 			setReplyTo(null);
 			Display.getDisplay(Midlegram.instance).setCurrentItem(msgInput);
 		} else if (cmd == attachVoice) {
 			UI.startForm(new RecordVoiceForm(this));
+		} else if (cmd == attachPhoto) {
+			 FileBrowser browser = new FileBrowser(Display.getDisplay(Midlegram.instance), new FileSelectListener() {
+		        public void onFileSelected(final String url, String filename) {
+		            new Thread(new Runnable() {
+		                public void run() {
+		                    addMediaToSend(new AttachedMedia("photo", url));
+		                }
+		            }).start();
+		            UI.endCurrent();
+		        }
+
+		        public void onBrowserCancelled() {
+		        	UI.endCurrent();
+		        }
+		    });
 		}
 	}
 	
