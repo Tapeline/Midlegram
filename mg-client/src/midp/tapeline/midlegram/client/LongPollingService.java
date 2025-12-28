@@ -17,7 +17,7 @@ public class LongPollingService implements Runnable {
         running = true;
         workerThread = new Thread(this);
         workerThread.setPriority(Thread.MIN_PRIORITY); 
-        workerThread.start();
+        //workerThread.start();
     }
 
     public void stop() {

@@ -38,47 +38,28 @@ public class Telegram {
 	}
 	
 	public Vector getFolders() throws IOException {
-		if (folders == null || foldersToChatIds == null) {
-			folders = client.getFolders();
-			foldersToChatIds = new Hashtable();
-			for (int i = 0; i < folders.size(); ++i)
-				foldersToChatIds.put(
-						new Long(((ChatFolder) folders.elementAt(i)).id), 
-						client.getChatsIds(((ChatFolder) folders.elementAt(i)).id)
-				);
-			foldersToChatIds.put(new Long(0), client.getChatsIds(0));
-		}
-		return folders;
+		return client.getFolders();
 	}
 	
-	public Vector getChats(long folderId) throws IOException {
+	public ChatListPage getChats(long folderId, int offset, int limit) throws IOException {
 		if (folders == null || 
 			foldersToChatIds == null || 
 			!foldersToChatIds.containsKey(new Long(folderId))) 
 			getFolders();
-		Vector ids = (Vector) foldersToChatIds.get(new Long(folderId));
+		Vector ids = (Vector) client.getChatsIds(folderId, offset, limit + 1);
 		System.out.println("Folder " + folderId + " chats " + ids);
 		Vector folderChats = new Vector();
-		for (int i = 0; i < ids.size(); ++i)
-			folderChats.addElement(getChat((Long) ids.elementAt(i)));
-		return folderChats;
-	}
-	
-	public Chat getChat(Long chatId) throws IOException {
-		if (chats == null) chats = new Hashtable();
-		if (!messages.containsKey(chatId)) messages.put(chatId, new Vector());
-		if (chats.containsKey(chatId)) return (Chat) chats.get(chatId);
-		Chat chat = client.getChat(chatId.longValue());
-		chats.put(chatId, chat);
-		return chat;
+		for (int i = 0; i < Math.min(limit, ids.size()); ++i)
+			folderChats.addElement(client.getChat(((Long) ids.elementAt(i)).longValue()));
+		return new ChatListPage(ids.size() > limit, folderChats);
 	}
 	
 	public Vector getMessages(Long chatId, long fromMsg) throws IOException {
 		return client.getMessages(chatId.longValue(), fromMsg, MESSAGE_BATCH);
 	}
 	
-	public void sendTextMessage(long chatId, String message) throws IOException {
-		client.sendTextMessage(chatId, message);
+	public void sendTextMessage(long chatId, long replyTo, String message) throws IOException {
+		client.sendTextMessage(chatId, replyTo, message);
 	}
 	
 	public byte[] getFile(int id, String mimetype) throws IOException {
@@ -93,5 +74,14 @@ public class Telegram {
 		return client.searchChats(query, limit);
 	}
 
+	public static class ChatListPage {
+		public final boolean hasNext;
+		public final Vector chats;
+		public ChatListPage(boolean hasNext, Vector chats) {
+			super();
+			this.hasNext = hasNext;
+			this.chats = chats;
+		}
+	}
 	
 }

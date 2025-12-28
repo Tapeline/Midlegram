@@ -77,7 +77,12 @@ class MessengerClient(Protocol):
         raise NotImplementedError
 
     @abstractmethod
-    async def send_text(self, chat_id: ChatId, text: str) -> None:
+    async def send_text(
+        self,
+        chat_id: ChatId,
+        reply_to: MessageId | None,
+        text: str
+    ) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -102,6 +107,16 @@ class MessengerClient(Protocol):
     async def search_chats(self, query: str, limit: int) -> list[Chat]:
         raise NotImplementedError
 
+    @abstractmethod
+    async def send_file(
+        self,
+        chat_id: ChatId,
+        reply_to: MessageId | None,
+        media_type: str,
+        contents: bytes,
+    ) -> None:
+        raise NotImplementedError
+
 
 class ClientStore(Protocol):
     @abstractmethod
@@ -113,7 +128,10 @@ class ClientStore(Protocol):
         raise NotImplementedError
 
     @abstractmethod
-    async def create_client_for_login(self, tok: SessionToken) -> MessengerClient:
+    async def create_client_for_login(
+        self,
+        tok: SessionToken
+    ) -> MessengerClient:
         raise NotImplementedError
 
     @abstractmethod

@@ -21,7 +21,7 @@ from midlegram.application.feat_login import (
 )
 from midlegram.application.feat_poll_events import WaitForNewMessages
 from midlegram.application.feat_read_messages import GetMessages, MarkRead
-from midlegram.application.feat_send import SendTextMessage
+from midlegram.application.feat_send import SendFileMessage, SendTextMessage
 from midlegram.application.pagination import Pagination
 from midlegram.domain.entities import ChatFolderId, ChatId, MessageId
 from midlegram.presentation.http.security import security_defs
@@ -134,13 +134,29 @@ class ChatController(Controller):
     @post("/chats/{chat_id:int}/send/text")
     @inject
     async def send_message(
-        self, chat_id: ChatId,
-        request: Request[Any, Any, Any], *,
+        self, *,
+        request: Request[Any, Any, Any],
+        chat_id: ChatId,
+        reply: MessageId | None = None,
         interactor: FromDishka[SendTextMessage],
     ) -> Response[bytes]:
         msg = await request.body()
         logger.info("Sending message", bytes=[int(c) for c in msg])
-        await interactor(chat_id, msg.decode(errors="ignore"))
+        await interactor(chat_id, reply, msg.decode(errors="ignore"))
+        return ans_ok(b"")
+
+    @post("/chats/{chat_id:int}/send/file/{media_type:str}")
+    @inject
+    async def send_message(
+        self, *,
+        request: Request[Any, Any, Any],
+        chat_id: ChatId,
+        media_type: str,
+        reply: MessageId | None = None,
+        interactor: FromDishka[SendFileMessage],
+    ) -> Response[bytes]:
+        msg = await request.body()
+        await interactor(chat_id, reply, media_type, msg)
         return ans_ok(b"")
 
     @get("/updates")

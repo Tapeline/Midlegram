@@ -1,3 +1,5 @@
+import tempfile
+import uuid
 from asyncio import Queue
 from contextlib import suppress
 from dataclasses import dataclass, field, replace
@@ -16,7 +18,7 @@ from midlegram.application.client import AuthCodeVerdict, MessengerClient
 from midlegram.application.exceptions import (
     InvalidAuthCode,
     TelegramSessionExpired, UnknownClientError,
-    Wrong2FAPassword,
+    UnknownMediaType, Wrong2FAPassword,
 )
 from midlegram.application.pagination import Pagination
 from midlegram.config import Config
@@ -326,8 +328,8 @@ class TelegramClient(MessengerClient):
         pagination: Pagination
     ) -> list[ChatId]:
         return self._folder_chat_ids.get(folder_id, [])[
-            pagination.offset:pagination.offset + pagination.limit
-        ]
+               pagination.offset:pagination.offset + pagination.limit
+               ]
 
     async def get_chat_folders(self) -> list[ChatFolder]:
         return self._folders
@@ -403,8 +405,16 @@ class TelegramClient(MessengerClient):
             )
         )
 
-    async def send_text(self, chat_id: ChatId, text: str) -> None:
+    async def send_text(
+        self,
+        chat_id: ChatId,
+        reply_to: MessageId | None,
+        text: str
+    ) -> None:
         logger.info("Sending text", chat_id=chat_id)
+        opts = {}
+        if reply_to:
+            opts["reply_to"] = {"message_id": int(reply_to)}
         ensure_no_error(
             await wait_tg(
                 self.tg.call_method(
@@ -413,11 +423,62 @@ class TelegramClient(MessengerClient):
                         'input_message_content': {
                             '@type': 'inputMessageText',
                             'text': {'text': text}
-                        }
+                        },
+                        **opts,
                     }
                 )
             )
         )
+
+    async def send_file(
+        self,
+        chat_id: ChatId,
+        reply_to: MessageId | None,
+        media_type: str,
+        contents: bytes,
+    ) -> None:
+        logger.info("Sending media", media_type=media_type)
+        opts = {}
+        tmp_path = Path(self.config.storage.media_path, str(uuid.uuid4()))
+        if reply_to:
+            opts["reply_to"] = {"message_id": int(reply_to)}
+        if type == "photo":
+            content = {
+                '@type': 'inputMessagePhoto',
+                'photo': {'@type': 'inputFileLocal', 'path': str(tmp_path)}
+            }
+        elif type == "voice_note":
+            content = {
+                '@type': 'inputMessageVoiceNote',
+                'voice_note': {'@type': 'inputFileLocal', 'path': str(tmp_path)}
+            }
+        elif type == "video":
+            content = {
+                '@type': 'inputMessageVideo',
+                'video': {'@type': 'inputFileLocal', 'path': str(tmp_path)}
+            }
+        elif type == "video_note":
+            content = {
+                '@type': 'inputMessageVideoNote',
+                'video_note': {'@type': 'inputFileLocal', 'path': str(tmp_path)}
+            }
+        else:
+            raise UnknownMediaType
+        try:
+            tmp_path.write_bytes(contents)
+            ensure_no_error(
+                await wait_tg(
+                    self.tg.call_method(
+                        'sendMessage', {
+                            'chat_id': chat_id,
+                            'input_message_content': content,
+                            **opts,
+                        }
+                    )
+                )
+            )
+        finally:
+            tmp_path.unlink()
 
     def logout_and_stop(self) -> None:
         logger.info("Logging out")
@@ -488,13 +549,21 @@ class TelegramClient(MessengerClient):
         return Path(path_str).read_bytes()
 
     async def search_chats(self, query: str, limit: int) -> list[Chat]:
-        chats = ensure_no_error(await wait_tg(self.tg.call_method(
-            "searchChatsOnServer",
-            {"query": query, "limit": limit}
-        )))
-        return list(await asyncio.gather(*map(
-            self.get_chat, chats.update["chat_ids"]
-        )))
+        chats = ensure_no_error(
+            await wait_tg(
+                self.tg.call_method(
+                    "searchChatsOnServer",
+                    {"query": query, "limit": limit}
+                )
+            )
+        )
+        return list(
+            await asyncio.gather(
+                *map(
+                    self.get_chat, chats.update["chat_ids"]
+                )
+            )
+        )
 
 
 def _parse_message(msg: dict[str, Any]) -> Message:
@@ -538,8 +607,8 @@ def _parse_message(msg: dict[str, Any]) -> Message:
     elif msg_type == MessageType.VOICE:
         body_text = (
             "(voice) " + time.strftime(
-                '%M:%S', time.gmtime(content["voice_note"]["duration"])
-            )
+            '%M:%S', time.gmtime(content["voice_note"]["duration"])
+        )
         )
         media.append(
             MessageMedia(

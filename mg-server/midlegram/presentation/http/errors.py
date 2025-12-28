@@ -3,7 +3,7 @@ from typing import Final
 from midlegram.application.exceptions import (
     ClientNotConnected,
     InvalidAuthCode, InvalidPhone, InvalidToken, NotAuthorized,
-    TelegramSessionExpired, Wrong2FAPassword,
+    TelegramSessionExpired, UnknownMediaType, Wrong2FAPassword,
 )
 from midlegram.application.feat_get_media import (
     ConversionNotSuccessful,
@@ -26,4 +26,5 @@ handlers: Final = gen_handler_mapping({
     TelegramSessionExpired: (401, infer_code),
     ConverterNotImplemented: (501, infer_code),
     ConversionNotSuccessful: (500, infer_code),
+    UnknownMediaType: (400, infer_code),
 })

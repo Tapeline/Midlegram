@@ -81,10 +81,14 @@ public class MGClient {
 	}
 	
 	public Vector getChatsIds(long folderId) throws IOException {
+		return getChatsIds(folderId, 0, 1000);
+	}
+	
+	public Vector getChatsIds(long folderId, int offset, int limit) throws IOException {
 		HttpConnection conn = null;
 		DataInputStream dis = null;
 		try {
-			conn = openSessionHttp("GET", "/api/folders/" + folderId + "/chats_ids?limit=1000");
+			conn = openSessionHttp("GET", "/api/folders/" + folderId + "/chats_ids?limit=" + limit + "&offset=" + offset);
 			assertRespOk(conn);
 			dis = conn.openDataInputStream();
 			Deserializer des = new Deserializer(dis);
@@ -177,12 +181,14 @@ public class MGClient {
 		}
 	}
 	
-	public void sendTextMessage(long chatId, String message) throws IOException {
+	public void sendTextMessage(long chatId, long replyTo, String message) throws IOException {
 		HttpConnection conn = null;
 		DataInputStream dis = null;
 		DataOutputStream dos = null;
+		String path = "/api/chats/" + chatId + "/send/text";
+		if (replyTo != 0) path += "?reply=" + replyTo;
 		try {
-			conn = openSessionHttp("POST", "/api/chats/" + chatId + "/send/text");
+			conn = openSessionHttp("POST", path);
 			byte[] bytes = message.getBytes("UTF-8");
 			conn.setRequestProperty("Content-Length", "" + bytes.length);
 			conn.setRequestProperty("Content-Type", "application/octet-stream");

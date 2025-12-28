@@ -17,7 +17,7 @@ from midlegram.application.feat_login import (
 )
 from midlegram.application.feat_poll_events import WaitForNewMessages
 from midlegram.application.feat_read_messages import GetMessages, MarkRead
-from midlegram.application.feat_send import SendTextMessage
+from midlegram.application.feat_send import SendFileMessage, SendTextMessage
 from midlegram.application.session import SessionProvider
 from midlegram.config import Config
 from midlegram.infrastructure.client_store import ClientFactory, FSClientStore
@@ -48,6 +48,7 @@ class TgDIProvider(Provider):
         ReconnectClient,
         GetMedia,
         SearchChats,
+        SendFileMessage,
         scope=Scope.REQUEST,
     )
 

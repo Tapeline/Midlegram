@@ -24,6 +24,7 @@ public class MessageItem extends StringItem implements ItemCommandListener {
 	Message message;
 	ChatForm form;
 	Command viewMedia;
+	Command reply;
 	
 	public MessageItem(Message message, ChatForm form) {
 		super(message.authorName, message.text + "\n" + 
@@ -32,6 +33,8 @@ public class MessageItem extends StringItem implements ItemCommandListener {
 		this.message = message;
 		setLayout(Item.LAYOUT_EXPAND);
 		setItemCommandListener(this);
+		reply = new Command("Reply", Command.SCREEN, 1);
+		addCommand(reply);
 		if (message.media.size() != 0) {
 			viewMedia = new Command("View media", Command.SCREEN, 1);
 			addCommand(viewMedia);

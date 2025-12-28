@@ -14,6 +14,7 @@ import javax.microedition.media.Manager;
 import javax.microedition.media.MediaException;
 import javax.microedition.media.Player;
 import javax.microedition.media.PlayerListener;
+import javax.microedition.media.control.VideoControl;
 
 import midp.tapeline.midlegram.Services;
 import midp.tapeline.midlegram.StringUtils;
@@ -82,6 +83,35 @@ public class MediaForm extends UIForm implements PlayerListener {
 	            append(playerInfo);
 	            append(playerGauge);
 	            append(playPauseButton);
+			} catch (Exception e) {
+				UI.alertFatal(e);
+			}
+		} else if (media.mimetype.startsWith("video")) {
+			try {
+				ByteArrayInputStream bais = new ByteArrayInputStream(content);
+				player = Manager.createPlayer(bais, "video/mp4");
+				player.addPlayerListener(this);
+				player.realize();
+	            player.prefetch();
+	            playPauseButton = new StringItem("", "Play", StringItem.BUTTON);
+	            playPauseButton.setDefaultCommand(playPause);
+	            playPauseButton.setItemCommandListener(this);
+	            playPauseButton.setLayout(Item.LAYOUT_CENTER);
+	            playerGauge = new Gauge(null, false, (int) (player.getDuration() / 1000000), 0);
+	            playerInfo = new StringItem(
+	            		"Now playing", "0:00 / " + StringUtils.toMMSS((int) (player.getDuration() / 1000000))
+        		);
+	            playerWatcher = new PlayerTimeWatcher(playerGauge, player, playerInfo);
+	            append(playerInfo);
+	            append(playerGauge);
+	            append(playPauseButton);
+				VideoControl videoControl = (VideoControl) (player.getControl("VideoControl"));
+	            if (videoControl == null) {
+	                UI.alertFatal("VideoControl not supported");
+	            } else {
+	                videoControl.initDisplayMode(VideoControl.USE_DIRECT_VIDEO, this);
+	                videoControl.setVisible(true);
+	            }
 			} catch (Exception e) {
 				UI.alertFatal(e);
 			}

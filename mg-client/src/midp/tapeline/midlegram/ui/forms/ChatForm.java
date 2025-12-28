@@ -5,11 +5,14 @@ import java.util.Calendar;
 import java.util.Vector;
 
 import javax.microedition.lcdui.Command;
+import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Item;
 import javax.microedition.lcdui.StringItem;
 import javax.microedition.lcdui.TextField;
 
+import midp.tapeline.midlegram.Midlegram;
 import midp.tapeline.midlegram.Services;
+import midp.tapeline.midlegram.StringUtils;
 import midp.tapeline.midlegram.client.data.Chat;
 import midp.tapeline.midlegram.client.data.Message;
 import midp.tapeline.midlegram.ui.UI;
@@ -32,6 +35,7 @@ public class ChatForm extends UIForm {
 	TextField msgInput = new TextField("New message", "", 1000, TextField.ANY);
 	Vector anchors = new Vector();
 	int currentAnchor = 0;
+	Message replyTo = null;
 	
 	public ChatForm(Chat chat) {
 		super(chat.title);
@@ -60,11 +64,21 @@ public class ChatForm extends UIForm {
 			for (int i = messages.size() - 1; i >= 0; --i) 
 				append(new MessageItem((Message) messages.elementAt(i), this));
 			if (currentAnchor != 0) append(nextButton);
-			append(msgInput);
+			append(msgInput); 
+			Display.getDisplay(Midlegram.instance).setCurrentItem(msgInput);
 		} catch (IOException exc) {
 			UI.alertFatal(exc);
 		} finally {
 			setLoading(false);
+		}
+	}
+	
+	public void setReplyTo(Message msg) {
+		replyTo = msg;
+		if (replyTo == null) {
+			msgInput.setLabel("New message");
+		} else {
+			msgInput.setLabel("Reply to \"" + StringUtils.trunc(msg.text, 16) + "\"");
 		}
 	}
 	
@@ -98,7 +112,7 @@ public class ChatForm extends UIForm {
 		} else if (cmd == send) {
 			if (msgInput.getString().length() == 0) return;
 			try {
-				Services.tg.sendTextMessage(chat.id, msgInput.getString());
+				Services.tg.sendTextMessage(chat.id, replyTo == null? 0 : replyTo.id, msgInput.getString());
 				insert(size() - 1, new MessageItem(
 						new Message(
 								0L, (byte) 0, 

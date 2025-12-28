@@ -32,6 +32,10 @@ class TelegramSessionExpired(AppError):
     ...
 
 
+class UnknownMediaType(AppError):
+    ...
+
+
 @dto
 class UnknownClientError(AppError):
     detail: dict[str, Any]
