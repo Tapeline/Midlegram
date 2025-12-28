@@ -479,7 +479,7 @@ class TelegramClient(MessengerClient):
             raise UnknownMediaType
         try:
             tmp_path.write_bytes(contents)
-            await asyncio.sleep(0.2)
+            await asyncio.sleep(1)
             ensure_no_error(
                 await wait_tg(
                     self.tg.call_method(
@@ -597,18 +597,23 @@ def _parse_message(msg: dict[str, Any]) -> Message:
         body_text = content['text']['text']
     elif msg_type == MessageType.PHOTO:
         body_text = "(img) " + content['caption']['text']
-        photo_size = content["photo"]["sizes"][0]
+        if not content["photo"]["sizes"]:
+            body_text = "(broken img)"
+            photo_size = None
+        else:
+            photo_size = content["photo"]["sizes"][0]
         for photo_var in content["photo"]["sizes"]:
             if photo_var["type"] == "m":  # 320x320
                 photo_size = photo_var
                 break
-        media.append(
-            MessageMedia(
-                "image/png",
-                photo_size['photo']['id'],
-                photo_size['photo']['size'],
+        if photo_size:
+            media.append(
+                MessageMedia(
+                    "image/png",
+                    photo_size['photo']['id'],
+                    photo_size['photo']['size'],
+                )
             )
-        )
     elif msg_type == MessageType.VIDEO:
         body_text = "(vid) " + content['caption']['text']
         media.append(
