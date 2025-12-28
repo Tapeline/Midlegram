@@ -1,3 +1,7 @@
+import io
+
+from pydub import AudioSegment
+
 from midlegram.application.client import ClientStore
 from midlegram.application.session import SessionProvider
 from midlegram.common import interactor
@@ -32,4 +36,9 @@ class SendFileMessage:
         contents: bytes,
     ) -> None:
         tg = await self.store.get_client(self.session.get_token())
+        if media_type == "voice_note":
+            audio = AudioSegment.from_file(io.BytesIO(contents))
+            output = io.BytesIO()
+            audio.export(output, format="ogg")
+            contents = output.getvalue()
         await tg.send_file(chat_id, reply_to, media_type, contents)
