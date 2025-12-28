@@ -7,6 +7,7 @@ import asyncio
 from datetime import datetime
 import time
 
+from pydub import AudioSegment
 from structlog import BoundLogger, getLogger
 from pathlib import Path
 from typing import Any
@@ -455,12 +456,14 @@ class TelegramClient(MessengerClient):
                 'photo': {'@type': 'inputFileLocal', 'path': str(tmp_path)}
             }
         elif media_type == "voice_note":
+            audio = AudioSegment.from_file(str(tmp_path))
             content = {
                 '@type': 'inputMessageVoiceNote',
                 'voice_note': {
                     '@type': 'inputFileLocal',
                     'path': str(tmp_path)
-                }
+                },
+                "duration": audio.duration_seconds,
             }
         elif media_type == "video":
             content = {

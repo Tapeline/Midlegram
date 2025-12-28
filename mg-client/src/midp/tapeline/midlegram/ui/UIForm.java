@@ -80,7 +80,7 @@ public abstract class UIForm extends Form implements CommandListener, ItemComman
 	    		try {
 					Thread.sleep(50);
 				} catch (InterruptedException ignored) {}
-	    		UIForm.this.delete(UIForm.this.size() - 1);
+	    		
 	    	}
 	    }).start();
 	}

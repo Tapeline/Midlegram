@@ -78,7 +78,6 @@ public class ChatForm extends UIForm {
 			append(msgInput); 
 			for (int i = 0; i < mediaToSend.size(); ++i) 
 				append(new QueuedMediaItem((AttachedMedia) mediaToSend.elementAt(i), this));
-			scrollToBottom();
 		} catch (IOException exc) {
 			UI.alertFatal(exc);
 		} finally {
