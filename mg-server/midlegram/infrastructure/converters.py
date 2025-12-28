@@ -26,7 +26,7 @@ class PILImageConverter(ImageConverter):
 
 class PydubAudioConverter(AudioConverter):
     async def convert_audio(self, content: bytes) -> bytes:
-        return await asyncio.to_thread(_convert_image, content)
+        return await asyncio.to_thread(_convert_audio, content)
 
 
 @dataclass
