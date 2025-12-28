@@ -10,4 +10,5 @@ MIDlet-Version: 1.1.2
 MIDlet-Vendor: Tapeline
 MIDlet-Name: Midlegram
 MicroEdition-Profile: MIDP-2.1
+MIDlet-Permissions: javax.microedition.io.Connector.http,javax.microedition.io.Connector.file.write,javax.microedition.io.Connector.file.read
 Nokia-MIDlet-On-Screen-Keypad: no

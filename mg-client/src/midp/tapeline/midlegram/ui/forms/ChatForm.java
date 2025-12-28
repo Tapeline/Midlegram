@@ -123,47 +123,49 @@ public class ChatForm extends UIForm {
 				}
 			}).start(); 
 		} else if (cmd == send) {
-			if (msgInput.getString().length() != 0) {
-				try {
-					Services.tg.sendTextMessage(chat.id, replyTo == null? 0 : replyTo.id, msgInput.getString());
-					insert(size() - 1, new MessageItem(
-							new Message(
-									0L, (byte) 0, 
-									(int) (Calendar.getInstance().getTime().getTime() / 1000), 
-									0, msgInput.getString(), "Me", "?", new Vector(), 
-									replyTo == null? null : new Long(replyTo.id)
-							), this)
-					);
-					msgInput.setString("");
-				} catch (IOException e) {
-					UI.alertFatal(e);
-				}
-			}
-			for (int i = 0; i < mediaToSend.size(); ++i) {
-				AttachedMedia media = (AttachedMedia) mediaToSend.elementAt(i);
-				try {
-					if (media.file != null)
-						Services.tg.sendFileMessage(chat.id, replyTo == null? 0 : replyTo.id, media.type, media.file);
-					else
-						Services.tg.sendFileMessage(chat.id, replyTo == null? 0 : replyTo.id, media.type, media.data);
-					insert(size() - 1, new MessageItem(
-							new Message(
-									0L, (byte) 0, 
-									(int) (Calendar.getInstance().getTime().getTime() / 1000), 
-									0, "(sent media " + media.type + ")" , "Me", "?", new Vector(), 
-									replyTo == null? null : new Long(replyTo.id)
-							), this)
-					);
-				} catch (IOException e) {
-					UI.alertFatal(e);
-				}
-			}
-			mediaToSend.removeAllElements();
+			setLoading(true);
 			new Thread(new Runnable() {
 				public void run() {
-					reloadMessages();
+					if (msgInput.getString().length() != 0) {
+						try {
+							Services.tg.sendTextMessage(chat.id, replyTo == null? 0 : replyTo.id, msgInput.getString());
+							insert(size() - 1, new MessageItem(
+									new Message(
+											0L, (byte) 0, 
+											(int) (Calendar.getInstance().getTime().getTime() / 1000), 
+											0, msgInput.getString(), "Me", "?", new Vector(), 
+											replyTo == null? null : new Long(replyTo.id)
+									), ChatForm.this)
+							);
+							msgInput.setString("");
+						} catch (IOException e) {
+							UI.alertFatal(e);
+						}
+					}
+					for (int i = 0; i < mediaToSend.size(); ++i) {
+						AttachedMedia media = (AttachedMedia) mediaToSend.elementAt(i);
+						try {
+							if (media.file != null)
+								Services.tg.sendFileMessage(chat.id, replyTo == null? 0 : replyTo.id, media.type, media.file);
+							else
+								Services.tg.sendFileMessage(chat.id, replyTo == null? 0 : replyTo.id, media.type, media.data);
+							insert(size() - 1, new MessageItem(
+									new Message(
+											0L, (byte) 0, 
+											(int) (Calendar.getInstance().getTime().getTime() / 1000), 
+											0, "(sent media " + media.type + ")" , "Me", "?", new Vector(), 
+											replyTo == null? null : new Long(replyTo.id)
+									), ChatForm.this)
+							);
+						} catch (IOException e) {
+							UI.alertFatal(e);
+						}
+					}
+					mediaToSend.removeAllElements();
+					ChatForm.this.setLoading(false);
+					ChatForm.this.reloadMessages();
 				}
-			}).start(); 
+			}).start();
 		} else if (cmd == noReply) {
 			setReplyTo(null);
 			Display.getDisplay(Midlegram.instance).setCurrentItem(msgInput);
