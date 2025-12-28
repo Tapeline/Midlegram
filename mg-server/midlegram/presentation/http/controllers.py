@@ -148,10 +148,11 @@ class ChatController(Controller):
     async def poll_updates(
         self,
         *,
+        t: int = 30,
         interactor: FromDishka[WaitForNewMessages]
     ) -> Response[bytes]:
-        messages = await interactor()
-        return ans_ok(serialize_list(serialize_message, messages))
+        messages = await interactor(polling_timeout_s=t)
+        return ans_ok(serialize_list(serialize_message_with_sender, messages))
 
     @post("/connect")
     @inject

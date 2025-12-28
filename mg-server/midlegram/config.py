@@ -28,6 +28,5 @@ class Config:
     tg_app: TgAppConfig
     storage: StorageConfig
     logging: LoggingConfig
-    polling_timeout_s: int = 30
-    max_msg_queue_size: int = 50
+    max_msg_queue_size: int = 200
     instance_password: str | None = None

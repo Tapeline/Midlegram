@@ -7,6 +7,7 @@ import javax.microedition.lcdui.Item;
 import javax.microedition.lcdui.TextField;
 
 import midp.tapeline.midlegram.Services;
+import midp.tapeline.midlegram.Settings;
 import midp.tapeline.midlegram.ui.UI;
 import midp.tapeline.midlegram.ui.UIForm;
 
@@ -33,6 +34,9 @@ public class AuthCodeForm extends UIForm implements Runnable {
 	public void run() {
 		try {
 			Services.tg.confirmCode(codeField.getString());
+			Settings.sessionKey = Services.tg.getSessionKey();
+			Settings.save();
+			Services.longPoller.start();
 			UI.startFormFromScratch(new ChatFolderListForm());
 		} catch (IOException exc) {
 			UI.alertFatal(exc);

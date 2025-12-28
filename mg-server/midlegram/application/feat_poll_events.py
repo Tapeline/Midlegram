@@ -11,6 +11,6 @@ class WaitForNewMessages:
     session: SessionProvider
     config: Config
 
-    async def __call__(self) -> list[Message]:
+    async def __call__(self, polling_timeout_s: int) -> list[Message]:
         tg = await self.store.get_client(self.session.get_token())
-        return await tg.wait_for_messages(self.config.polling_timeout_s)
+        return await tg.wait_for_messages(polling_timeout_s)

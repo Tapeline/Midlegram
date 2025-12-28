@@ -60,6 +60,7 @@ public class Midlegram extends MIDlet implements Runnable {
 				UI.startFormFromScratch(new StartAuthForm());
 				return;
 			}
+			Services.longPoller.start();
 			UI.startFormFromScratch(new ChatFolderListForm());
 		} else
 			UI.startFormFromScratch(new StartAuthForm());

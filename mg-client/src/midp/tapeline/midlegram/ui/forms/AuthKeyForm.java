@@ -30,6 +30,7 @@ public class AuthKeyForm extends UIForm {
 		if (cmd == next) {
 			Settings.sessionKey = keyField.getString();
 			Settings.save();
+			Services.longPoller.start();
 			UI.startFormFromScratch(new ChatFolderListForm());
 		} else if (cmd == logInWithPhone) {
 			UI.startFormFromScratch(new StartAuthForm());

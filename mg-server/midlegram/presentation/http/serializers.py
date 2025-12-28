@@ -1,5 +1,4 @@
 import struct
-from locale import strcoll
 
 from litestar import Response
 
@@ -43,6 +42,7 @@ _MSG_TYPE_MAP = {
     MessageType.VIDEO: 2,
     MessageType.VOICE: 3,
     MessageType.AUDIO: 4,
+    MessageType.VIDEO_NOTE: 5,
     MessageType.UNKNOWN: 100,
 }
 
