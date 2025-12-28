@@ -39,6 +39,6 @@ class SendFileMessage:
         if media_type == "voice_note":
             audio = AudioSegment.from_file(io.BytesIO(contents))
             output = io.BytesIO()
-            audio.export(output, format="ogg", codec="opus")
+            audio.export(output, format="ogg", codec="libopus")
             contents = output.getvalue()
         await tg.send_file(chat_id, reply_to, media_type, contents)

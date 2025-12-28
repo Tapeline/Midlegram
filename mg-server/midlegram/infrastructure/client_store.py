@@ -37,7 +37,8 @@ class FSClientStore(ClientStore):
 
     async def get_client(self, tok: SessionToken) -> MessengerClient:
         if tok not in self._active_sessions:
-            raise ClientNotConnected
+            return await self.create_client(tok)
+            #raise ClientNotConnected
         return self._active_sessions[tok]
 
     async def create_client_for_login(
