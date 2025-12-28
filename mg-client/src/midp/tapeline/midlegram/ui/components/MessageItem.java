@@ -28,7 +28,7 @@ public class MessageItem extends StringItem implements ItemCommandListener {
 	
 	public MessageItem(Message message, ChatForm form) {
 		super(message.authorName, message.text + "\n" + 
-					StringUtils.dateToString(new Date(((long) message.time) * 1000)));
+					StringUtils.dateToString(new Date(((long) message.time) * 1000)), Item.PLAIN);
 		this.form = form;
 		this.message = message;
 		setLayout(Item.LAYOUT_EXPAND);
@@ -45,6 +45,8 @@ public class MessageItem extends StringItem implements ItemCommandListener {
 	public void commandAction(Command cmd, Item arg1) {
 		if (cmd == viewMedia) {
 			UI.startForm(new MediaForm((Media) message.media.elementAt(0)));
+		} else if (cmd == reply) {
+			form.setReplyTo(message);
 		}
 	}
 	

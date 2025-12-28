@@ -147,7 +147,7 @@ class ChatController(Controller):
 
     @post("/chats/{chat_id:int}/send/file/{media_type:str}")
     @inject
-    async def send_message(
+    async def send_file_message(
         self, *,
         request: Request[Any, Any, Any],
         chat_id: ChatId,

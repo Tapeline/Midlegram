@@ -30,6 +30,7 @@ public class ChatForm extends UIForm {
 	Command next = new Command("Next", Command.SCREEN, 1);
 	Command reload = new Command("Reload", Command.SCREEN, 1);
 	Command send = new Command("Send", Command.SCREEN, 1);
+	Command noReply = new Command("Do not reply", Command.SCREEN, 1);
 	StringItem prevButton = new StringItem("", "Earlier", Item.BUTTON);
 	StringItem nextButton = new StringItem("", "Later", Item.BUTTON);
 	TextField msgInput = new TextField("New message", "", 1000, TextField.ANY);
@@ -49,6 +50,7 @@ public class ChatForm extends UIForm {
 		msgInput.setLayout(Item.LAYOUT_EXPAND);
 		msgInput.setItemCommandListener(this);
 		msgInput.setDefaultCommand(send);
+		addCommand(noReply);
 		addCommand(reload);
 		addBackButton();
 		anchors.addElement(new Long(0));
@@ -124,6 +126,8 @@ public class ChatForm extends UIForm {
 			} catch (IOException e) {
 				UI.alertFatal(e);
 			}
+		} else if (cmd == noReply) {
+			setReplyTo(null);
 		}
 	}
 	
