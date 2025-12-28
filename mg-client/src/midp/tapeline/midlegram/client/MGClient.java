@@ -148,7 +148,7 @@ public class MGClient {
 		HttpConnection conn = null;
 		DataInputStream dis = null; 
 		try {
-			conn = openSessionHttp("POST", "/api/connect");
+			conn = openSessionHttp("POST", "/api/reconnect");
 			assertRespOk(conn);
 			dis = conn.openDataInputStream();
 			Deserializer des = new Deserializer(dis);

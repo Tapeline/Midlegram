@@ -5,6 +5,10 @@ from midlegram.application.exceptions import (
     InvalidAuthCode, InvalidPhone, InvalidToken, NotAuthorized,
     TelegramSessionExpired, Wrong2FAPassword,
 )
+from midlegram.application.feat_get_media import (
+    ConversionNotSuccessful,
+    ConverterNotImplemented,
+)
 from midlegram.presentation.http.framework.errors import (
     gen_handler_mapping,
     infer_code,
@@ -20,4 +24,6 @@ handlers: Final = gen_handler_mapping({
     ClientNotConnected: (409, infer_code),
     InvalidInstancePassword: (401, infer_code),
     TelegramSessionExpired: (401, infer_code),
+    ConverterNotImplemented: (501, infer_code),
+    ConversionNotSuccessful: (500, infer_code),
 })

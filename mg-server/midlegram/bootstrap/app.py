@@ -13,6 +13,7 @@ from litestar.config.cors import CORSConfig
 from litestar.plugins.prometheus import PrometheusConfig, PrometheusController
 
 from midlegram.bootstrap.di.config import ConfigDIProvider
+from midlegram.bootstrap.di.converters import ConvertersDIProvider
 from midlegram.bootstrap.di.tg import TgDIProvider
 
 from midlegram.config import Config
@@ -36,6 +37,7 @@ def _create_container(config: Config) -> AsyncContainer:
         LitestarProvider(),
         ConfigDIProvider(),
         TgDIProvider(),
+        ConvertersDIProvider(),
         context={
             Config: config,
         },

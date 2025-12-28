@@ -1,6 +1,6 @@
 from asyncio import Queue
 from contextlib import suppress
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 import asyncio
 from datetime import datetime
 import time
@@ -89,6 +89,15 @@ class TelegramClient(MessengerClient):
         self.tg.phone = None
         self.tg.add_update_handler("updateChatFolders", self._update_folders)
         self.tg.add_update_handler('updateNewMessage', self._put_new_msg)
+        self.tg.add_update_handler(
+            "updateChatPosition", self._handle_chat_position
+        )
+        self.tg.add_update_handler(
+            "updateChatLastMessage", self._handle_chat_last_message
+        )
+        self.tg.add_update_handler(
+            "updateChatReadInbox", self._handle_read_inbox
+        )
         self.tg.call_method('getOption', {'name': 'version'}).wait()
 
     def _put_new_msg(self, update: dict[str, Any]) -> None:
@@ -113,6 +122,92 @@ class TelegramClient(MessengerClient):
                 title=folder.get("title", "Folder")
             ) for folder in update["chat_folders"]
         ]
+
+    def _handle_chat_position(self, update: dict[str, Any]) -> None:
+        chat_id = update['chat_id']
+        position = update['position']
+        order = position['order']  # 0 means removed, >0 means the sort order
+
+        folder_id = None
+        if position['list']['@type'] == 'chatListMain':
+            folder_id = ChatFolderId(0)
+        elif position['list']['@type'] == 'chatListFolder':
+            folder_id = ChatFolderId(position['list']['chat_folder_id'])
+
+        # If it's an archive list, ignore
+        if folder_id is None:
+            return
+
+        if folder_id not in self._chats_in_folders:
+            self._chats_in_folders[folder_id] = []
+        if chat_id not in self._chats:
+            self._loop.call_soon_threadsafe(
+                self._load_chat_background, chat_id, folder_id, order
+            )
+            return
+
+        chat = self._chats[chat_id]
+        current_list = self._chats_in_folders[folder_id]
+
+        self._chats_in_folders[folder_id] = [
+            c for c in current_list if c.id != chat_id
+        ]
+        if order == 0:
+            logger.debug("Chat removed", chat=chat_id, folder=folder_id)
+        else:
+            self._chats_in_folders[folder_id].insert(0, chat)
+            logger.debug("Chat moved to top", chat=chat_id, folder=folder_id)
+
+    def _handle_chat_last_message(self, update: dict[str, Any]) -> None:
+        chat_id = update['chat_id']
+        if chat_id not in self._chats:
+            return
+        last_message = update.get('last_message')
+        if not last_message:
+            return
+        msg = _parse_message(last_message)
+        updated_chat = replace(self._chats[chat_id], last_msg=msg.text)
+        self._update_local_chat_instance(updated_chat)
+
+    def _handle_read_inbox(self, update: dict[str, Any]) -> None:
+        chat_id = update['chat_id']
+        unread_count = update['unread_count']
+        if chat_id in self._chats:
+            updated_chat = replace(
+                self._chats[chat_id], unread_count=unread_count
+            )
+            self._update_local_chat_instance(updated_chat)
+
+    def _update_local_chat_instance(self, new_chat: Chat) -> None:
+        self._chats[new_chat.id] = new_chat
+        for folder_id, chat_list in self._chats_in_folders.items():
+            for i, chat in enumerate(chat_list):
+                if chat.id == new_chat.id:
+                    chat_list[i] = new_chat
+                    break
+
+    async def _load_chat_background(
+        self,
+        chat_id: ChatId,
+        folder_id: ChatFolderId,
+        order: int
+    ) -> None:
+        if chat_id not in self._chats:
+            try:
+                self._chats[chat_id] = await self._load_chat(chat_id)
+            except Exception as e:
+                logger.error(
+                    "Failed to load background chat", chat_id=chat_id, exc=e
+                )
+                return
+        if order > 0 and folder_id in self._chats_in_folders:
+            exists = any(
+                c.id == chat_id for c in self._chats_in_folders[folder_id]
+            )
+            if not exists:
+                self._chats_in_folders[folder_id].insert(
+                    0, self._chats[chat_id]
+                )
 
     async def connect_client(self) -> None:
         self._chats.clear()
