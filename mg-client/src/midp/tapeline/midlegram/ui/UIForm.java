@@ -84,4 +84,13 @@ public abstract class UIForm extends Form implements CommandListener, ItemComman
 	    	}
 	    }).start();
 	}
+	
+	public void delete(Item item) {
+		for (int i = 0; i < size(); i++) {
+			if (get(i) == item) {
+				delete(i);
+				return;
+			}
+		}
+	}
 }
