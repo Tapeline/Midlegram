@@ -479,6 +479,7 @@ class TelegramClient(MessengerClient):
             raise UnknownMediaType
         try:
             tmp_path.write_bytes(contents)
+            await asyncio.sleep(0.2)
             ensure_no_error(
                 await wait_tg(
                     self.tg.call_method(

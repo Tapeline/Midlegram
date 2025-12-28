@@ -60,6 +60,7 @@ public class ChatForm extends UIForm {
 		addCommand(noReply);
 		addCommand(reload);
 		addCommand(attachVoice);
+		addCommand(attachPhoto);
 		addBackButton();
 		anchors.addElement(new Long(0));
 	}
@@ -176,13 +177,14 @@ public class ChatForm extends UIForm {
 		                    addMediaToSend(new AttachedMedia("photo", url));
 		                }
 		            }).start();
-		            UI.endCurrent();
+		            Display.getDisplay(Midlegram.instance).setCurrent(ChatForm.this);
 		        }
 
 		        public void onBrowserCancelled() {
-		        	UI.endCurrent();
+		        	Display.getDisplay(Midlegram.instance).setCurrent(ChatForm.this);
 		        }
 		    });
+		    Display.getDisplay(Midlegram.instance).setCurrent(browser);
 		}
 	}
 	
