@@ -1,6 +1,7 @@
 import tempfile
 import uuid
 from asyncio import Queue
+from collections import defaultdict
 from contextlib import suppress
 from dataclasses import dataclass, field, replace
 import asyncio
@@ -73,7 +74,6 @@ def ensure_no_error(result: AsyncResult) -> AsyncResult:
 class TelegramClient(MessengerClient):
     config: Config
     tg: Telegram
-    _listeners: list[Queue[Message]] = field(default_factory=list)
     _folders: list[ChatFolder] = field(default_factory=list)
     _folder_chat_ids: dict[ChatFolderId, list[ChatId]] = field(
         default_factory=dict
@@ -83,6 +83,9 @@ class TelegramClient(MessengerClient):
     )
     _chats: dict[ChatId, Chat] = field(default_factory=dict)
     _g_msg_queue: Queue[Message] = field(default_factory=Queue)
+    _msg_chat_subscribers: dict[ChatId, list[Queue[Message]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
     _loop: asyncio.AbstractEventLoop = None
     _foldersUpdated: asyncio.Future = field(default_factory=asyncio.Future)
 
@@ -105,8 +108,11 @@ class TelegramClient(MessengerClient):
 
     def _put_new_msg(self, update: dict[str, Any]) -> None:
         # logger.debug("Got a message", msg=update["message"])
-        for q in self._listeners:
-            q.put_nowait(_parse_message(update["message"]))
+        msg = _parse_message(update["message"])
+        for q in self._msg_chat_subscribers[
+            ChatId(update["message"]["chat_id"])
+        ]:
+            q.put_nowait(msg)
         self._loop.call_soon_threadsafe(
             self._handle_msg_in_loop,
             _parse_message(update["message"])
@@ -329,8 +335,8 @@ class TelegramClient(MessengerClient):
         pagination: Pagination
     ) -> list[ChatId]:
         return self._folder_chat_ids.get(folder_id, [])[
-               pagination.offset:pagination.offset + pagination.limit
-               ]
+            pagination.offset:pagination.offset + pagination.limit
+       ]
 
     async def get_chat_folders(self) -> list[ChatFolder]:
         return self._folders
@@ -348,10 +354,27 @@ class TelegramClient(MessengerClient):
             logger.info("Got something", length=len(data))
             while not self._g_msg_queue.empty():
                 data.append(self._g_msg_queue.get_nowait())
-            return data  # type: ignore
+            return data
         except asyncio.TimeoutError:
             logger.info("Nothing new")
             return []
+
+    async def wait_for_messages_in_chat(
+        self, timeout_s: int, chat: ChatId
+    ) -> list[Message]:
+        q: Queue[Message] = Queue()
+        self._msg_chat_subscribers[chat].append(q)
+        try:
+            data = [await asyncio.wait_for(q.get(), timeout=timeout_s)]
+            logger.info("Got something for chat", chat=chat)
+            while not q.empty():
+                data.append(q.get_nowait())
+            return data
+        except asyncio.TimeoutError:
+            logger.info("Nothing new")
+            return []
+        finally:
+            self._msg_chat_subscribers[chat].remove(q)
 
     async def get_messages(
         self,

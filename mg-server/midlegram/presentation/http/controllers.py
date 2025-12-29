@@ -19,7 +19,10 @@ from midlegram.application.feat_login import (
     AuthWithCode,
     StartAuth,
 )
-from midlegram.application.feat_poll_events import WaitForNewMessages
+from midlegram.application.feat_poll_events import (
+    WaitForNewMessages,
+    WaitForNewMessagesInChat,
+)
 from midlegram.application.feat_read_messages import GetMessages, MarkRead
 from midlegram.application.feat_send import SendFileMessage, SendTextMessage
 from midlegram.application.pagination import Pagination
@@ -168,6 +171,18 @@ class ChatController(Controller):
         interactor: FromDishka[WaitForNewMessages]
     ) -> Response[bytes]:
         messages = await interactor(polling_timeout_s=t)
+        return ans_ok(serialize_list(serialize_message_with_sender, messages))
+
+    @get("/chats/{chat_id:int}/updates")
+    @inject
+    async def poll_updates_in_chat(
+        self,
+        *,
+        chat_id: ChatId,
+        t: int = 30,
+        interactor: FromDishka[WaitForNewMessagesInChat]
+    ) -> Response[bytes]:
+        messages = await interactor(polling_timeout_s=t, chat_id=chat_id)
         return ans_ok(serialize_list(serialize_message_with_sender, messages))
 
     @post("/connect")

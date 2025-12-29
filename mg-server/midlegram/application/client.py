@@ -60,6 +60,12 @@ class MessengerClient(Protocol):
         raise NotImplementedError
 
     @abstractmethod
+    async def wait_for_messages_in_chat(
+        self, timeout_s: int, chat: ChatId
+    ) -> list[Message]:
+        raise NotImplementedError
+
+    @abstractmethod
     async def get_messages(
         self,
         chat_id: ChatId,

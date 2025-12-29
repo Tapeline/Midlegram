@@ -15,7 +15,10 @@ from midlegram.application.feat_login import (
     AuthWithCode,
     StartAuth,
 )
-from midlegram.application.feat_poll_events import WaitForNewMessages
+from midlegram.application.feat_poll_events import (
+    WaitForNewMessages,
+    WaitForNewMessagesInChat,
+)
 from midlegram.application.feat_read_messages import GetMessages, MarkRead
 from midlegram.application.feat_send import SendFileMessage, SendTextMessage
 from midlegram.application.session import SessionProvider
@@ -49,6 +52,7 @@ class TgDIProvider(Provider):
         GetMedia,
         SearchChats,
         SendFileMessage,
+        WaitForNewMessagesInChat,
         scope=Scope.REQUEST,
     )
 
