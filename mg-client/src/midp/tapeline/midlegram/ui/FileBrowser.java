@@ -7,12 +7,19 @@ import java.util.Enumeration;
 import java.util.Vector;
 import java.io.IOException;
 
-// Vibecoded filebrowser
 public class FileBrowser extends List implements CommandListener, Runnable {
+	
+	public static interface FileSelectListener {
+	    void onFileSelected(String url, String filename);
+	    void onBrowserCancelled();
+	}
 
-    private String currentPath; // Current directory URL (e.g. file:///E:/Images/)
-    private Vector fileList = new Vector(); // Stores real filenames
-    private Vector typeList = new Vector(); // Stores type (0=dir, 1=file)
+    // FIX 1: ROOT must be empty so we don't prepend a slash to "E:/"
+    private static final String ROOT = ""; 
+    private String currentPath = ROOT;
+    
+    private Vector fileList = new Vector();
+    private Vector typeList = new Vector();
     
     private Command cmdSelect;
     private Command cmdBack;
@@ -21,17 +28,16 @@ public class FileBrowser extends List implements CommandListener, Runnable {
     private FileSelectListener listener;
     private Display display;
     
-    // Extensions to show
     private static final String[] VALID_EXTENSIONS = {
-        ".jpg", ".jpeg", ".png", ".gif", // Images
+        ".jpg", ".jpeg", ".png", ".gif", 
     };
 
-    private static final String ROOT = "/";
-    private static final Image ICON_DIR = null; // Add image if you have resources
+    // Use null for default system icons to save RAM
+    private static final Image ICON_DIR = null; 
     private static final Image ICON_FILE = null;
 
     public FileBrowser(Display display, FileSelectListener listener) {
-        super("Select File", List.IMPLICIT);
+        super("Select Drive", List.IMPLICIT);
         this.display = display;
         this.listener = listener;
         
@@ -40,45 +46,74 @@ public class FileBrowser extends List implements CommandListener, Runnable {
         cmdCancel = new Command("Cancel", Command.EXIT, 1);
         
         addCommand(cmdSelect);
-        addCommand(cmdBack); // Acts as "Up Directory" or "Cancel" if at root
+        addCommand(cmdBack); 
         setCommandListener(this);
-        setSelectCommand(cmdSelect); // Allow clicking center button/tapping
+        setSelectCommand(cmdSelect);
         
-        // Start at root
-        showRoots();
+        // FIX 2: Do not run showRoots() in constructor.
+        // It triggers a security prompt which might block the UI thread.
+        // We defer it until the list is actually shown.
+    }
+    
+    // Call this immediately after display.setCurrent(browser)
+    public void init() {
+        new Thread(new Runnable() {
+            public void run() {
+                showRoots();
+            }
+        }).start();
     }
 
     private void showRoots() {
         currentPath = ROOT;
-        deleteAll();
-        fileList.removeAllElements();
-        typeList.removeAllElements();
-        setTitle("Select Drive");
+        
+        // UI updates must be serial
+        display.callSerially(new Runnable() {
+            public void run() {
+                deleteAll();
+                fileList.removeAllElements();
+                typeList.removeAllElements();
+                setTitle("Select Drive");
+            }
+        });
 
+        // This line triggers the "Allow Read User Data?" prompt on Symbian
         Enumeration drives = FileSystemRegistry.listRoots();
+        
+        final Vector roots = new Vector();
         while (drives.hasMoreElements()) {
-            String root = (String) drives.nextElement();
-            // On Nokia E7, E:/ is usually where user data is
-            append(root, ICON_DIR); 
-            fileList.addElement(root);
-            typeList.addElement(new Integer(0)); // 0 = Dir
+            roots.addElement(drives.nextElement());
         }
+        
+        display.callSerially(new Runnable() {
+            public void run() {
+                for (int i = 0; i < roots.size(); i++) {
+                    String root = (String) roots.elementAt(i);
+                    // Symbian returns "E:/", "C:/"
+                    append(root, ICON_DIR); 
+                    fileList.addElement(root);
+                    typeList.addElement(new Integer(0)); 
+                }
+            }
+        });
     }
 
     private void openDirectory(String url) {
-        // Run in thread to avoid freezing UI during IO
         currentPath = url;
+        // Run in thread to avoid freezing UI during IO
         new Thread(this).start();
     }
 
     public void run() {
-        // This runs when opening a directory
         FileConnection fc = null;
         try {
-            fc = (FileConnection) Connector.open("file:///" + currentPath, Connector.READ);
+            // FIX 3: Robust URL construction
+            // If currentPath is "E:/", result is "file:///E:/" (Correct)
+            String connUrl = "file:///" + currentPath;
+            
+            fc = (FileConnection) Connector.open(connUrl, Connector.READ);
             Enumeration list = fc.list();
             
-            // Prepare UI updates (Batching for safety)
             final Vector safeFiles = new Vector();
             final Vector safeTypes = new Vector();
             
@@ -90,7 +125,6 @@ public class FileBrowser extends List implements CommandListener, Runnable {
                     safeFiles.addElement(filename);
                     safeTypes.addElement(new Integer(0));
                 } else {
-                    // Filter extensions
                     if (isValidMedia(filename)) {
                         safeFiles.addElement(filename);
                         safeTypes.addElement(new Integer(1));
@@ -98,7 +132,6 @@ public class FileBrowser extends List implements CommandListener, Runnable {
                 }
             }
 
-            // Update UI on main thread
             final String pathTitle = currentPath;
             display.callSerially(new Runnable() {
                 public void run() {
@@ -107,13 +140,15 @@ public class FileBrowser extends List implements CommandListener, Runnable {
                     fileList.removeAllElements();
                     typeList.removeAllElements();
                     
+                    if (safeFiles.size() == 0) {
+                        append("(Empty)", null); // Visual feedback
+                    }
+                    
                     for (int i = 0; i < safeFiles.size(); i++) {
                         String f = (String) safeFiles.elementAt(i);
                         Integer t = (Integer) safeTypes.elementAt(i);
-                        
-                        // Visual trick: Directories usually look better with brackets or icon
                         String label = (t.intValue() == 0) ? "[" + f + "]" : f;
-                        append(label, t.intValue() == 0 ? ICON_DIR : ICON_FILE);
+                        append(label, null);
                         
                         fileList.addElement(f);
                         typeList.addElement(t);
@@ -123,8 +158,14 @@ public class FileBrowser extends List implements CommandListener, Runnable {
 
         } catch (Exception e) {
             e.printStackTrace();
-            // If error (access denied), go back
-            goUp();
+            // On Access Denied or Error, go back
+            // Run on UI thread to be safe
+            display.callSerially(new Runnable() {
+                public void run() {
+                    UI.alertFatal("Access Denied");
+                    goUp(); 
+                }
+            });
         } finally {
             try { if (fc != null) fc.close(); } catch (IOException ignored) {}
         }
@@ -144,11 +185,14 @@ public class FileBrowser extends List implements CommandListener, Runnable {
             return;
         }
         
-        // Logic to strip last folder
-        // "E:/Images/Camera/" -> "E:/Images/"
+        // "E:/Images/" -> "E:/"
+        // "E:/" -> ROOT
+        
         int lastSlash = currentPath.lastIndexOf('/', currentPath.length() - 2);
+        
         if (lastSlash == -1) {
-            showRoots();
+            // We were at a drive root (e.g. "E:/"), go back to drive selection
+            new Thread(new Runnable() { public void run() { showRoots(); } }).start();
         } else {
             String parent = currentPath.substring(0, lastSlash + 1);
             openDirectory(parent);
@@ -169,24 +213,20 @@ public class FileBrowser extends List implements CommandListener, Runnable {
         if (c == cmdSelect || c == List.SELECT_COMMAND) {
             int index = getSelectedIndex();
             if (index == -1) return;
+            
+            // Handle "(Empty)" item
+            if (fileList.size() <= index) return;
 
             String selectedName = (String) fileList.elementAt(index);
             int type = ((Integer) typeList.elementAt(index)).intValue();
 
             if (type == 0) {
-                // It's a directory
                 openDirectory(currentPath + selectedName);
             } else {
-                // It's a file
+                // Return full URL
                 String fullUrl = "file:///" + currentPath + selectedName;
                 listener.onFileSelected(fullUrl, selectedName);
             }
         }
     }
-    
-    public interface FileSelectListener {
-        void onFileSelected(String url, String filename);
-        void onBrowserCancelled();
-    }
-    
 }

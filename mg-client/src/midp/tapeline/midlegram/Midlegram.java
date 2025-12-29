@@ -7,7 +7,6 @@ import javax.microedition.lcdui.Display;
 import javax.microedition.midlet.MIDlet;
 import javax.microedition.midlet.MIDletStateChangeException;
 
-import midp.tapeline.midlegram.client.LongPollingService;
 import midp.tapeline.midlegram.client.MGClient;
 import midp.tapeline.midlegram.client.Telegram;
 import midp.tapeline.midlegram.ui.Animation;
@@ -22,7 +21,6 @@ public class Midlegram extends MIDlet implements Runnable {
 	
 	public Midlegram() {
 		instance = this;
-		Services.longPoller = new LongPollingService();
 	}
 
 	protected void destroyApp(boolean arg0) throws MIDletStateChangeException {
@@ -60,7 +58,6 @@ public class Midlegram extends MIDlet implements Runnable {
 				UI.startFormFromScratch(new StartAuthForm());
 				return;
 			}
-			Services.longPoller.start();
 			UI.startFormFromScratch(new ChatFolderListForm());
 		} else
 			UI.startFormFromScratch(new StartAuthForm());

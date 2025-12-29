@@ -45,6 +45,8 @@ public class ChatForm extends UIForm {
 	int currentAnchor = 0;
 	Message replyTo = null;
 	Vector mediaToSend = new Vector();
+	int lastMessageItem = 0;
+	ChatMessagePoller poller;
 	
 	public ChatForm(Chat chat) {
 		super(chat.title);
@@ -63,6 +65,7 @@ public class ChatForm extends UIForm {
 		addCommand(attachPhoto);
 		addBackButton();
 		anchors.addElement(new Long(0));
+		poller = new ChatMessagePoller(this);
 	}
 	
 	private void reloadMessages() {
@@ -72,8 +75,9 @@ public class ChatForm extends UIForm {
 			Long fromId = (Long) anchors.elementAt(currentAnchor);
 			messages = Services.tg.getMessages(new Long(chat.id), fromId.longValue());
 			append(prevButton);
+			lastMessageItem = 2;
 			for (int i = messages.size() - 1; i >= 0; --i) 
-				append(new MessageItem((Message) messages.elementAt(i), this));
+				insertNewMessage((Message) messages.elementAt(i));
 			if (currentAnchor != 0) append(nextButton);
 			append(msgInput); 
 			for (int i = 0; i < mediaToSend.size(); ++i) 
@@ -82,6 +86,7 @@ public class ChatForm extends UIForm {
 			UI.alertFatal(exc);
 		} finally {
 			setLoading(false);
+			lastMessageItem--;  // nasty hack -- loading item is also an item :/
 		}
 	}
 	
@@ -96,6 +101,11 @@ public class ChatForm extends UIForm {
 	
 	public void onStart() {
 		reloadMessages();
+		poller.start();
+	}
+	
+	public void onEnd() {
+		poller.stop();
 	}
 
 	protected void onCommand(Command cmd) {
@@ -104,7 +114,9 @@ public class ChatForm extends UIForm {
 			currentAnchor++;
 			new Thread(new Runnable() {
 				public void run() {
+					poller.stop();
 					reloadMessages();
+					poller.start();
 				}
 			}).start(); 
 		} else if (cmd == next) {
@@ -112,30 +124,35 @@ public class ChatForm extends UIForm {
 			currentAnchor--;
 			new Thread(new Runnable() {
 				public void run() {
+					poller.stop();
 					reloadMessages();
+					poller.start();
 				}
 			}).start(); 
 		} else if (cmd == reload) {
 			new Thread(new Runnable() {
 				public void run() {
+					poller.stop();
 					reloadMessages();
+					poller.start();
 				}
 			}).start(); 
 		} else if (cmd == send) {
 			setLoading(true);
 			new Thread(new Runnable() {
 				public void run() {
+					poller.stop();
 					if (msgInput.getString().length() != 0) {
 						try {
 							Services.tg.sendTextMessage(chat.id, replyTo == null? 0 : replyTo.id, msgInput.getString());
-							insert(size() - 1, new MessageItem(
+							/*insert(size() - 1, new MessageItem(
 									new Message(
 											0L, (byte) 0, 
 											(int) (Calendar.getInstance().getTime().getTime() / 1000), 
 											0, msgInput.getString(), "Me", "?", new Vector(), 
 											replyTo == null? null : new Long(replyTo.id)
 									), ChatForm.this)
-							);
+							);*/
 							msgInput.setString("");
 						} catch (IOException e) {
 							UI.alertFatal(e);
@@ -148,14 +165,14 @@ public class ChatForm extends UIForm {
 								Services.tg.sendFileMessage(chat.id, replyTo == null? 0 : replyTo.id, media.type, media.file);
 							else
 								Services.tg.sendFileMessage(chat.id, replyTo == null? 0 : replyTo.id, media.type, media.data);
-							insert(size() - 1, new MessageItem(
+							/*insert(size() - 1, new MessageItem(
 									new Message(
 											0L, (byte) 0, 
 											(int) (Calendar.getInstance().getTime().getTime() / 1000), 
 											0, "(sent media " + media.type + ")" , "Me", "?", new Vector(), 
 											replyTo == null? null : new Long(replyTo.id)
 									), ChatForm.this)
-							);
+							);*/
 						} catch (IOException e) {
 							UI.alertFatal(e);
 						}
@@ -163,6 +180,7 @@ public class ChatForm extends UIForm {
 					mediaToSend.removeAllElements();
 					ChatForm.this.setLoading(false);
 					ChatForm.this.reloadMessages();
+					poller.start();
 				}
 			}).start();
 		} else if (cmd == noReply) {
@@ -186,6 +204,7 @@ public class ChatForm extends UIForm {
 		        }
 		    });
 		    Display.getDisplay(Midlegram.instance).setCurrent(browser);
+		    browser.init();
 		}
 	}
 	
@@ -227,6 +246,53 @@ public class ChatForm extends UIForm {
 				break;
 			}
 		}
+	}
+	
+	void insertNewMessage(Message message) {
+		insert(lastMessageItem, new MessageItem(message, this));
+		lastMessageItem++;
+	}
+	
+	static class ChatMessagePoller implements Runnable {
+		
+		ChatForm form;
+		Thread th;
+		boolean running = false;
+		
+		ChatMessagePoller(ChatForm form) {
+			this.form = form;
+		}
+		
+		void start() {
+			th = new Thread(this);
+			running = true;
+			th.start();
+		}
+		
+		void stop() {
+			if (!running) return;
+			running = false;
+			try {
+				Services.tg.interruptPolling();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		public void run() {
+			while (running) {
+	            try {
+	            	Vector updates = Services.tg.pollUpdates(form.chat.id);
+	            	for (int i = 0; i < updates.size(); i++)
+	            		form.insertNewMessage((Message) updates.elementAt(i));
+	            } catch (Exception e) {
+	                e.printStackTrace();
+	            	// wait before retry
+	                try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
+	            }
+	        }
+		}
+		
 	}
 
 }

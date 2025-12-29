@@ -1,9 +1,10 @@
 import struct
-from typing import Any
+from typing import Any, AsyncGenerator
 
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
 from litestar import Controller, Request, Response, get, post
+from litestar.response import Stream
 from structlog import getLogger
 
 from midlegram.application.client import AuthCodeVerdict
@@ -181,9 +182,19 @@ class ChatController(Controller):
         chat_id: ChatId,
         t: int = 30,
         interactor: FromDishka[WaitForNewMessagesInChat]
-    ) -> Response[bytes]:
-        messages = await interactor(polling_timeout_s=t, chat_id=chat_id)
-        return ans_ok(serialize_list(serialize_message_with_sender, messages))
+    ) -> Stream:
+        async def update_stream() -> AsyncGenerator[bytes, None]:
+            yield b"\xAA"
+            messages = await interactor(polling_timeout_s=t, chat_id=chat_id)
+            yield ans_ok(
+                serialize_list(serialize_message_with_sender, messages)
+            ).content
+        return Stream(
+            update_stream(),
+            media_type="application/octet-stream",
+            status_code=200,
+            headers={"X-Accel-Buffering": "no"}
+        )
 
     @post("/connect")
     @inject

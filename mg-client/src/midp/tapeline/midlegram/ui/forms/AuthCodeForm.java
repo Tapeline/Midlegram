@@ -36,7 +36,6 @@ public class AuthCodeForm extends UIForm implements Runnable {
 			Services.tg.confirmCode(codeField.getString());
 			Settings.sessionKey = Services.tg.getSessionKey();
 			Settings.save();
-			Services.longPoller.start();
 			UI.startFormFromScratch(new ChatFolderListForm());
 		} catch (IOException exc) {
 			UI.alertFatal(exc);

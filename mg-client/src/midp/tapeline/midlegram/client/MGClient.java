@@ -19,6 +19,9 @@ public class MGClient {
 	
 	private String sessionKey;
 	private String url;
+	private volatile HttpConnection pollingConnection = null;
+	private volatile DataInputStream pollingInput = null;
+	private volatile boolean isPollingWaiting = false;
 
 	public MGClient(String url, String sessionKey) {
 		this.url = url;
@@ -134,21 +137,42 @@ public class MGClient {
 		}
 	}
 	
-	public Vector pollUpdates() throws IOException {
+	public Vector pollUpdates(long chatId) throws IOException {
 		HttpConnection conn = null;
 		DataInputStream dis = null;
 		try {
-			conn = (HttpConnection) Connector.open(url + "/api/updates?t=1", Connector.READ, true);
+			conn = (HttpConnection) Connector.open(url + "/api/chats/" + chatId + "/updates?t=30", Connector.READ, true);
 			conn.setRequestProperty("Authorization", sessionKey);
 			conn.setRequestMethod("GET");
-			assertRespOk(conn);
+			System.out.println("Opening is");
+			pollingConnection = conn;
+			isPollingWaiting = true;
 			dis = conn.openDataInputStream();
+			System.out.println("Opened is");
+			pollingInput = dis;
+			System.out.println("Reading initial byte");
+			dis.readByte();
+			/*assertRespOk(conn);*/
 			Deserializer des = new Deserializer(dis);
+			System.out.println("Waiting for success");
 			assertOpSuccess(des.readOperationSuccess());
+			System.out.println("Reading message list");
 			return des.readMessageList();
-		} finally { 
+		} finally {
+			pollingConnection = null;
+			isPollingWaiting = false;
+			pollingInput = null;
 			if (dis != null) dis.close(); 
 			if (conn != null) conn.close();
+		}
+	}
+	
+	public void interruptPolling() throws IOException {
+		if (isPollingWaiting) {
+			if (pollingConnection != null) {
+				System.out.println("Closing the connection forcibly");
+				pollingConnection.close();
+			}
 		}
 	}
 	

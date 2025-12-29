@@ -78,6 +78,14 @@ public class Telegram {
 	public Vector searchChats(String query, int limit) throws IOException {
 		return client.searchChats(query, limit);
 	}
+	
+	public Vector pollUpdates(long chatId) throws IOException {
+		return client.pollUpdates(chatId);
+	}
+	
+	public void interruptPolling() throws IOException {
+		client.interruptPolling();
+	}
 
 	public static class ChatListPage {
 		public final boolean hasNext;
