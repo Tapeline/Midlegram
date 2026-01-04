@@ -26,21 +26,21 @@ public class RecordVoiceForm extends UIForm implements Runnable {
     private Command cmdSend;
     private Command cmdCancel;
     private ChatForm form;
-    
+
     private Player player;
     private RecordControl recordControl;
     private ByteArrayOutputStream outputStream;
-    
+
     private boolean isRecording = false;
     private byte[] recordedData = null;
-  
+
 
     public RecordVoiceForm(ChatForm form) {
         super("Voice note");
         this.form = form;
         statusItem = new StringItem("Status", "Not recording - tap to speak");
-        volumeGauge = new Gauge("Activity", false, Gauge.INDEFINITE, 0); 
-        
+        volumeGauge = new Gauge("Activity", false, Gauge.INDEFINITE, 0);
+
         append(statusItem);
 
         cmdRecord = new Command("Start", Command.SCREEN, 1);
@@ -59,26 +59,27 @@ public class RecordVoiceForm extends UIForm implements Runnable {
         } else if (cmd == cmdSend) {
             form.addMediaToSend(new AttachedMedia("voice_note", recordedData));
             UI.endCurrent();
-        } 
+        }
     }
 
     // --- Recording Logic (Run in Thread to avoid UI freeze) ---
-    
+
     private void startRecording() {
         if (isRecording) return;
         statusItem.setText("Initializing...");
         removeCommand(cmdRecord);
-        
+
         // Run media setup in background
         new Thread(this).start();
     }
 
     public void run() {
-    	if (player != null) 
-    		player.close();
-		try {
-			if (outputStream != null) outputStream.close();
-		} catch (IOException ignored) {}
+        if (player != null)
+            player.close();
+        try {
+            if (outputStream != null) outputStream.close();
+        } catch (IOException ignored) {
+        }
         try {
             // 1. Create Player for Audio Capture
             // Nokia E7 usually records AMR by default with this locator.
@@ -99,12 +100,12 @@ public class RecordVoiceForm extends UIForm implements Runnable {
             // 4. Start
             recordControl.startRecord();
             player.start();
-            
+
             isRecording = true;
-            
+
             // Update UI from background
             updateUI(true);
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             isRecording = false;
@@ -124,16 +125,16 @@ public class RecordVoiceForm extends UIForm implements Runnable {
             if (player != null) {
                 player.close(); // Releases the microphone
             }
-            
+
             // 2. Get Data
             if (outputStream != null) {
                 recordedData = outputStream.toByteArray();
                 outputStream.close();
             }
-            
+
             isRecording = false;
             updateUI(false);
-            
+
         } catch (Exception e) {
             statusItem.setText("Error saving: " + e.getMessage());
         }
@@ -158,12 +159,13 @@ public class RecordVoiceForm extends UIForm implements Runnable {
             }
         });
     }
-    
+
     public void onEnd() {
         try {
             if (player != null) player.close();
             if (outputStream != null) outputStream.close();
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
     }
-    
+
 }

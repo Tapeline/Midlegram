@@ -15,21 +15,21 @@ import midp.tapeline.midlegram.ui.UI;
 import midp.tapeline.midlegram.ui.UIForm;
 
 public class AboutForm extends UIForm {
-	
-	public AboutForm() {
-		super("About");
-		Image image;
-		try {
-			image = Image.createImage("/icon.png");
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e.toString());
-		}
-		ImageItem imageitem = new ImageItem("Midlegram v1.1.1", image, ImageItem.LAYOUT_CENTER, "");
-		append(imageitem);
-		append(new StringItem("Author", "Tapeline"));
-		append(new StringItem("Debug", ""));
-		String apiVersion = System.getProperty("microedition.media.version");
+
+    public AboutForm() {
+        super("About");
+        Image image;
+        try {
+            image = Image.createImage("/icon.png");
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.toString());
+        }
+        ImageItem imageitem = new ImageItem("Midlegram v1.3", image, ImageItem.LAYOUT_CENTER, "");
+        append(imageitem);
+        append(new StringItem("Author", "Tapeline"));
+        append(new StringItem("Debug", ""));
+        String apiVersion = System.getProperty("microedition.media.version");
         append("MM API version:" + apiVersion + "\n");
         append("Mixing supported: " + System.getProperty("supports.mixing") + "\n");
         append("Audio capture supported: " + System.getProperty("supports.audio.capture") + "\n");
@@ -40,6 +40,6 @@ public class AboutForm extends UIForm {
         append("Supported video snaphot encodings: " + System.getProperty("video.snapshot.encodings") + "\n");
         append("\n");
         addBackButton();
-	}
+    }
 
 }

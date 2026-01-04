@@ -1,3 +1,4 @@
+Manifest-Version: 1.0
 Navi-Key-Hidden: true
 Nokia-MIDlet-Splash-Screen-Image: splash-portrait.png, splash-landscape.png
 MIDlet-1: Midlegram,/icon.png,midp.tapeline.midlegram.Midlegram
@@ -6,9 +7,10 @@ MIDlet-Icon: /icon.png
 MicroEdition-Configuration: CLDC-1.1
 Nokia-Scalable-Icon-MIDlet-1: /icon.svg
 Nokia-Scalable-Icon: /icon.svg
-MIDlet-Version: 1.2
+MIDlet-Version: 1.3
 MIDlet-Vendor: Tapeline
 MIDlet-Name: Midlegram
 MicroEdition-Profile: MIDP-2.1
 MIDlet-Permissions: javax.microedition.io.Connector.http,javax.microedition.io.Connector.file.write,javax.microedition.io.Connector.file.read
 Nokia-MIDlet-On-Screen-Keypad: no
+

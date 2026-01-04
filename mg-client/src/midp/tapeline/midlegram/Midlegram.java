@@ -17,50 +17,50 @@ import midp.tapeline.midlegram.ui.forms.StartAuthForm;
 
 public class Midlegram extends MIDlet implements Runnable {
 
-	public static Midlegram instance;
-	
-	public Midlegram() {
-		instance = this;
-	}
+    public static Midlegram instance;
 
-	protected void destroyApp(boolean arg0) throws MIDletStateChangeException {
+    public Midlegram() {
+        instance = this;
+    }
 
-	}
+    protected void destroyApp(boolean arg0) throws MIDletStateChangeException {
 
-	protected void pauseApp() {
-		
-	}
+    }
 
-	protected void startApp() throws MIDletStateChangeException {
-		Display.getDisplay(this).setCurrent(new Splash());
-		Animation.startAnimations();
-		Settings.load();
-		Services.client = new MGClient("http://mpgram.tapeline.dev", Settings.sessionKey);
-		Services.tg = new Telegram(Services.client);
-		new Thread(this).start();
-	}
-	
-	public void exit() {
-		try {
-			destroyApp(true);
-		} catch (MIDletStateChangeException e) {
-			throw new RuntimeException(e.toString());
-		}
-		notifyDestroyed();
-	}
+    protected void pauseApp() {
 
-	public void run() {
-		if (Settings.sessionKey != null) {
-			try {
-				Services.tg.connect();
-			} catch (IOException e) {
-				UI.alertFatal(e);
-				UI.startFormFromScratch(new StartAuthForm());
-				return;
-			}
-			UI.startFormFromScratch(new ChatFolderListForm());
-		} else
-			UI.startFormFromScratch(new StartAuthForm());
-	}
+    }
+
+    protected void startApp() throws MIDletStateChangeException {
+        Display.getDisplay(this).setCurrent(new Splash());
+        Animation.startAnimations();
+        Settings.load();
+        Services.client = new MGClient("http://mpgram.tapeline.dev", Settings.sessionKey);
+        Services.tg = new Telegram(Services.client);
+        new Thread(this).start();
+    }
+
+    public void exit() {
+        try {
+            destroyApp(true);
+        } catch (MIDletStateChangeException e) {
+            throw new RuntimeException(e.toString());
+        }
+        notifyDestroyed();
+    }
+
+    public void run() {
+        if (Settings.sessionKey != null) {
+            try {
+                Services.tg.connect();
+            } catch (IOException e) {
+                UI.alertFatal(e);
+                UI.startFormFromScratch(new StartAuthForm());
+                return;
+            }
+            UI.startFormFromScratch(new ChatFolderListForm());
+        } else
+            UI.startFormFromScratch(new StartAuthForm());
+    }
 
 }

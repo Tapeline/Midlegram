@@ -1,0 +1,31 @@
+<component name="libraryTable">
+  <library name="Nokia Lib">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/cldc10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/cldc11.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/inapp.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jsr75_file.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jsr75_pim.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jsr82.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jsr120.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jsr135.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jsr172_rpc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jsr172_xmlparser.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jsr177_apdu.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jsr177_crypto.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jsr179.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jsr184.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jsr205.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jsr211.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jsr226.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jsr234.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jsr256.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/midp10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/midp20.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/midp21.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/nokiaui.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

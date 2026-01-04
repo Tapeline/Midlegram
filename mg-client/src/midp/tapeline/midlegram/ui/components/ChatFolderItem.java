@@ -12,23 +12,23 @@ import midp.tapeline.midlegram.ui.forms.ChatListForm;
 
 public class ChatFolderItem extends StringItem implements ItemCommandListener {
 
-	ChatFolder folder;
-	ChatFolderListForm folderListForm;
-	Command go = new Command("Go", Command.OK, 1);
-	
-	public ChatFolderItem(ChatFolder chatFolder, ChatFolderListForm folderListForm) {
-		super("", chatFolder.name, Item.BUTTON);
-		this.folder = chatFolder;
-		this.folderListForm = folderListForm;
-		setDefaultCommand(go);
-		setItemCommandListener(this);
-		setLayout(Item.LAYOUT_EXPAND);
-	}
+    ChatFolder folder;
+    ChatFolderListForm folderListForm;
+    Command go = new Command("Go", Command.OK, 1);
 
-	public void commandAction(Command cmd, Item arg1) {
-		if (cmd == go) {
-			UI.startForm(new ChatListForm(folder));
-		}
-	}
-	
+    public ChatFolderItem(ChatFolder chatFolder, ChatFolderListForm folderListForm) {
+        super("", chatFolder.name, Item.BUTTON);
+        this.folder = chatFolder;
+        this.folderListForm = folderListForm;
+        setDefaultCommand(go);
+        setItemCommandListener(this);
+        setLayout(Item.LAYOUT_EXPAND);
+    }
+
+    public void commandAction(Command cmd, Item arg1) {
+        if (cmd == go) {
+            UI.startForm(new ChatListForm(folder));
+        }
+    }
+
 }

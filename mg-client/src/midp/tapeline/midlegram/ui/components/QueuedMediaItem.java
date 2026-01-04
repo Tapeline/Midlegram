@@ -22,27 +22,27 @@ import midp.tapeline.midlegram.ui.forms.MediaForm;
 
 public class QueuedMediaItem extends StringItem implements ItemCommandListener {
 
-	public final AttachedMedia media;
-	ChatForm form;
-	
-	Command remove;
-	
-	public QueuedMediaItem(AttachedMedia media, ChatForm form) {
-		super("Attached " + media.type, "tap to remove" , Item.PLAIN);
-		this.form = form;
-		this.media = media;
-		setLayout(Item.LAYOUT_SHRINK);
-		setItemCommandListener(this);
-		remove = new Command("Remove", Command.SCREEN, 1);
-		addCommand(remove);
-		setDefaultCommand(remove);
-		setItemCommandListener(this);
-	}
+    public final AttachedMedia media;
+    ChatForm form;
 
-	public void commandAction(Command cmd, Item arg1) {
-		if (cmd == remove) {
-			form.removeMediaToSend(media);
-		}
-	}
-	
+    Command remove;
+
+    public QueuedMediaItem(AttachedMedia media, ChatForm form) {
+        super("Attached " + media.type, "tap to remove", Item.PLAIN);
+        this.form = form;
+        this.media = media;
+        setLayout(Item.LAYOUT_SHRINK);
+        setItemCommandListener(this);
+        remove = new Command("Remove", Command.SCREEN, 1);
+        addCommand(remove);
+        setDefaultCommand(remove);
+        setItemCommandListener(this);
+    }
+
+    public void commandAction(Command cmd, Item arg1) {
+        if (cmd == remove) {
+            form.removeMediaToSend(media);
+        }
+    }
+
 }

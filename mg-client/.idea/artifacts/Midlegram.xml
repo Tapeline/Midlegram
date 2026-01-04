@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Midlegram">
+    <output-path>$PROJECT_DIR$/classes/artifacts/Midlegram</output-path>
+    <root id="archive" name="Midlegram.jar">
+      <element id="module-output" name="mg-client" />
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/res/META-INF/MANIFEST.MF" />
+      </element>
+    </root>
+  </artifact>
+</component>

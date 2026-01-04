@@ -20,46 +20,46 @@ import midp.tapeline.midlegram.ui.components.LoadingItem;
 import midp.tapeline.midlegram.ui.components.MessageItem;
 
 public class SearchChatsForm extends UIForm {
-	
-	Command search = new Command("Search", Command.SCREEN, 1);
-	StringItem searchButton = new StringItem("", "Search", Item.BUTTON);
-	TextField searchField = new TextField("Query", "", 100, TextField.ANY);
-	Vector chats;
-	
-	public SearchChatsForm() {
-		super("Search chats");
-		searchButton.setLayout(Item.LAYOUT_EXPAND);
-		searchField.setLayout(Item.LAYOUT_EXPAND);
-		searchButton.setDefaultCommand(search);
-		searchButton.setItemCommandListener(this);
-		append(searchField);
-		append(searchButton);
-		addBackButton();
-	}
-	
-	private void repaintChats() {
-		setLoading(false);
-		deleteAll();
-		setLoading(true);
-		append(searchField);
-		append(searchButton);
-		for (int i = 0; i < chats.size(); i++) 
-			append(new ChatItem((Chat) chats.elementAt(i)));
-		setLoading(false);
-	}
-	
-	protected void onCommand(Command cmd) {
-		if (cmd == search) {
-			setLoading(true);
-			try {
-				chats = Services.tg.searchChats(searchField.getString(), 10);
-				repaintChats();
-			} catch (IOException exc) {
-				UI.alertFatal(exc);
-			} finally {
-				setLoading(false);
-			}
-		}
-	}
+
+    Command search = new Command("Search", Command.SCREEN, 1);
+    StringItem searchButton = new StringItem("", "Search", Item.BUTTON);
+    TextField searchField = new TextField("Query", "", 100, TextField.ANY);
+    Vector chats;
+
+    public SearchChatsForm() {
+        super("Search chats");
+        searchButton.setLayout(Item.LAYOUT_EXPAND);
+        searchField.setLayout(Item.LAYOUT_EXPAND);
+        searchButton.setDefaultCommand(search);
+        searchButton.setItemCommandListener(this);
+        append(searchField);
+        append(searchButton);
+        addBackButton();
+    }
+
+    private void repaintChats() {
+        setLoading(false);
+        deleteAll();
+        setLoading(true);
+        append(searchField);
+        append(searchButton);
+        for (int i = 0; i < chats.size(); i++)
+            append(new ChatItem((Chat) chats.elementAt(i)));
+        setLoading(false);
+    }
+
+    protected void onCommand(Command cmd) {
+        if (cmd == search) {
+            setLoading(true);
+            try {
+                chats = Services.tg.searchChats(searchField.getString(), 10);
+                repaintChats();
+            } catch (IOException exc) {
+                UI.alertFatal(exc);
+            } finally {
+                setLoading(false);
+            }
+        }
+    }
 
 }
