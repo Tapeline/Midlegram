@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
   release:
@@ -19,12 +20,15 @@ jobs:
         run: uv tool install microbuildtool
 
       - name: Build
+        working-directory: mg-server
         run: uv tool run microbuildtool build
 
       - name: Create package
+        working-directory: mg-server
         run: uv tool run microbuildtool jar Midlegram.jar
 
       - name: Update release
+        working-directory: mg-server
         run: |
           echo "Updating release ${{ github.ref_name }}"
           gh release upload ${{ github.ref_name }} Midlegram.jar
