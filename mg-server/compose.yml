@@ -1,0 +1,19 @@
+services:
+  mg:
+    build: .
+    ports:
+      - "8999:8999"
+    configs:
+      - source: mg_conf
+        target: ./midlegram.yml
+    volumes:
+      - mgdata:/app/.store
+
+
+configs:
+  mg_conf:
+    file: midlegram.yml
+
+
+volumes:
+  mgdata:

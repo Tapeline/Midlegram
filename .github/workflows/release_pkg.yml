@@ -1,0 +1,32 @@
+name: Build and publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Publish
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Install MBT
+        run: uv tool install microbuildtool
+
+      - name: Build
+        run: uv tool run microbuildtool build
+
+      - name: Create package
+        run: uv tool run microbuildtool jar Midlegram.jar
+
+      - name: Update release
+        run: |
+          echo "Updating release ${{ github.ref_name }}"
+          gh release upload ${{ github.ref_name }} Midlegram.jar
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -18,9 +18,9 @@ class TgAppConfig:
 @dataclass
 class StorageConfig:
     encryption_key: str
-    sessions_path: str = ".sessions"
-    media_path: str = ".media"
-    tdlib_path: str = ".tdlib"
+    sessions_path: str = ".store/sessions"
+    media_path: str = ".store/media"
+    tdlib_path: str = ".store/tdlib"
 
 
 @dataclass

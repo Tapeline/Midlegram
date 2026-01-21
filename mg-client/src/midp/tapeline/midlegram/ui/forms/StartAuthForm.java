@@ -15,7 +15,7 @@ public class StartAuthForm extends UIForm implements Runnable {
 
     Command next = new Command("Next", Command.OK, 1);
     Command logInWithKey = new Command("Log in with key", Command.SCREEN, 1);
-    TextField phoneField = new TextField("Phone", "+79869667927", 20, TextField.PHONENUMBER);
+    TextField phoneField = new TextField("Phone", "", 20, TextField.PHONENUMBER);
 
     public StartAuthForm() {
         super("Log in with phone");
