@@ -16,19 +16,24 @@ jobs:
 
       - uses: astral-sh/setup-uv@v5
 
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+
       - name: Install MBT
         run: uv tool install microbuildtool
 
       - name: Build
-        working-directory: mg-server
+        working-directory: mg-client
         run: uv tool run microbuildtool build
 
       - name: Create package
-        working-directory: mg-server
+        working-directory: mg-client
         run: uv tool run microbuildtool jar Midlegram.jar
 
       - name: Update release
-        working-directory: mg-server
+        working-directory: mg-client
         run: |
           echo "Updating release ${{ github.ref_name }}"
           gh release upload ${{ github.ref_name }} Midlegram.jar
