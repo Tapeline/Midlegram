@@ -90,6 +90,7 @@ public class ChatForm extends UIForm {
             append(msgInput);
             for (int i = 0; i < mediaToSend.size(); ++i)
                 append(new QueuedMediaItem((AttachedMedia) mediaToSend.elementAt(i), this));
+            Display.getDisplay(Midlegram.instance).setCurrentItem(msgInput);
         } catch (IOException exc) {
             UI.alertFatal(exc);
         } finally {
@@ -165,14 +166,6 @@ public class ChatForm extends UIForm {
                     if (msgInput.getString().length() != 0) {
                         try {
                             Services.tg.sendTextMessage(chat.id, replyTo == null ? 0 : replyTo.id, msgInput.getString());
-							/*insert(size() - 1, new MessageItem(
-									new Message(
-											0L, (byte) 0, 
-											(int) (Calendar.getInstance().getTime().getTime() / 1000), 
-											0, msgInput.getString(), "Me", "?", new Vector(), 
-											replyTo == null? null : new Long(replyTo.id)
-									), ChatForm.this)
-							);*/
                             msgInput.setString("");
                         } catch (IOException e) {
                             UI.alertFatal(e);
@@ -185,14 +178,6 @@ public class ChatForm extends UIForm {
                                 Services.tg.sendFileMessage(chat.id, replyTo == null ? 0 : replyTo.id, media.type, media.file);
                             else
                                 Services.tg.sendFileMessage(chat.id, replyTo == null ? 0 : replyTo.id, media.type, media.data);
-							/*insert(size() - 1, new MessageItem(
-									new Message(
-											0L, (byte) 0, 
-											(int) (Calendar.getInstance().getTime().getTime() / 1000), 
-											0, "(sent media " + media.type + ")" , "Me", "?", new Vector(), 
-											replyTo == null? null : new Long(replyTo.id)
-									), ChatForm.this)
-							);*/
                         } catch (IOException e) {
                             UI.alertFatal(e);
                         }

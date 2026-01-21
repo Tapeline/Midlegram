@@ -73,6 +73,10 @@ public class Telegram {
         return client.getFile(id, mimetype);
     }
 
+    public String getFileToFile(int id, String mimetype) throws IOException {
+        return client.getFileToFile(id, mimetype);
+    }
+
     public StreamingFile getFileStream(int id, String mimetype) throws IOException {
         return client.getFileStream(id, mimetype);
     }

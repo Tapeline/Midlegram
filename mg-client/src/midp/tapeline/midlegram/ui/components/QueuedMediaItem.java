@@ -1,24 +1,12 @@
 package midp.tapeline.midlegram.ui.components;
 
-import java.util.Date;
-
 import javax.microedition.lcdui.Command;
-import javax.microedition.lcdui.CustomItem;
-import javax.microedition.lcdui.Graphics;
 import javax.microedition.lcdui.Item;
 import javax.microedition.lcdui.ItemCommandListener;
 import javax.microedition.lcdui.StringItem;
 
-import midp.tapeline.midlegram.StringUtils;
 import midp.tapeline.midlegram.client.data.AttachedMedia;
-import midp.tapeline.midlegram.client.data.Chat;
-import midp.tapeline.midlegram.client.data.Media;
-import midp.tapeline.midlegram.client.data.Message;
-import midp.tapeline.midlegram.ui.UI;
-import midp.tapeline.midlegram.ui.forms.ChatFolderListForm;
 import midp.tapeline.midlegram.ui.forms.ChatForm;
-import midp.tapeline.midlegram.ui.forms.ChatListForm;
-import midp.tapeline.midlegram.ui.forms.MediaForm;
 
 public class QueuedMediaItem extends StringItem implements ItemCommandListener {
 

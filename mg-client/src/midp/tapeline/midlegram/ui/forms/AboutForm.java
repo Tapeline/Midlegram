@@ -25,7 +25,7 @@ public class AboutForm extends UIForm {
             e.printStackTrace();
             throw new RuntimeException(e.toString());
         }
-        ImageItem imageitem = new ImageItem("Midlegram v1.3", image, ImageItem.LAYOUT_CENTER, "");
+        ImageItem imageitem = new ImageItem("Midlegram v1.4", image, ImageItem.LAYOUT_CENTER, "");
         append(imageitem);
         append(new StringItem("Author", "Tapeline"));
         append(new StringItem("Debug", ""));

@@ -5,6 +5,7 @@ import java.util.Vector;
 import javax.microedition.lcdui.Alert;
 import javax.microedition.lcdui.AlertType;
 import javax.microedition.lcdui.Display;
+import javax.microedition.lcdui.Displayable;
 
 import midp.tapeline.midlegram.Midlegram;
 
@@ -13,18 +14,17 @@ public class UI {
     private static Vector formStack = new Vector();
     public static Alert currentAlert = null;
 
-    public static UIForm currentForm() {
+    public static UIDisplayable currentForm() {
         if (formStack.size() == 0)
             return null;
-        return ((UIForm) formStack.elementAt(formStack.size() - 1));
+        return ((UIDisplayable) formStack.elementAt(formStack.size() - 1));
     }
 
-    public static void startForm(final UIForm form) {
+    public static void startForm(final UIDisplayable form) {
         if (formStack.size() > 0)
             currentForm().onSuspend();
         formStack.addElement(form);
-        Display.getDisplay(Midlegram.instance).setCurrent(form);
-        Display.getDisplay(Midlegram.instance).getCurrent();
+        Display.getDisplay(Midlegram.instance).setCurrent((Displayable) form);
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -34,10 +34,9 @@ public class UI {
                 form.onStart();
             }
         }).start();
-
     }
 
-    public static void startFormFromScratch(UIForm form) {
+    public static void startFormFromScratch(UIDisplayable form) {
         for (int i = 0; i < formStack.size(); i++) {
             currentForm().onEnd();
             popCurrent();
@@ -55,7 +54,7 @@ public class UI {
         } else {
             currentForm().onEnd();
             popCurrent();
-            Display.getDisplay(Midlegram.instance).setCurrent(currentForm());
+            Display.getDisplay(Midlegram.instance).setCurrent((Displayable) currentForm());
             currentForm().onResume();
         }
     }

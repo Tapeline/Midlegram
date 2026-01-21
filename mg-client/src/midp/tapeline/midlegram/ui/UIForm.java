@@ -12,7 +12,7 @@ import javax.microedition.lcdui.StringItem;
 import midp.tapeline.midlegram.Midlegram;
 import midp.tapeline.midlegram.ui.components.LoadingItem;
 
-public abstract class UIForm extends Form implements CommandListener, ItemCommandListener {
+public abstract class UIForm extends Form implements CommandListener, ItemCommandListener, UIDisplayable {
 
     private StringItem bottomAnchor;
     protected Command backCommand;

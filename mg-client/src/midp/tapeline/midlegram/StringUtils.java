@@ -2,6 +2,7 @@ package midp.tapeline.midlegram;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Random;
 
 public class StringUtils {
 
@@ -57,4 +58,20 @@ public class StringUtils {
         int sec = seconds % 60;
         return "" + minutes + ":" + (sec < 10 ? "0" + sec : "" + sec);
     }
+
+    private static final String randChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final int randCharsCnt = randChars.length();
+
+    public static String rand(int len) {
+        char[] chars = new char[len];
+        Random rnd = new Random();
+        for (int i = 0; i < len; ++i)
+            chars[i] = randChars.charAt(rnd.nextInt(randCharsCnt));
+        return new String(chars);
+    }
+
+    public static String rand32() {
+        return rand(32);
+    }
+
 }

@@ -1,0 +1,22 @@
+name = "Midlegram"
+
+
+[assets]
+src = [
+    "src/**/*.java"
+]
+res = [
+    "res/*:.",
+]
+manifest = "MANIFEST.MF"
+
+
+[build]
+output_dir = "build"
+java_home = "C:\\Users\\Tapeline\\.jdks\\corretto-1.8.0_402"
+
+
+[libs]
+[libs.nokia-platform-libs]
+glob = "lib/**.jar"
+include = false

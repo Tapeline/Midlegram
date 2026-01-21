@@ -1,10 +1,7 @@
 package midp.tapeline.midlegram.client;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.util.Random;
 import java.util.Vector;
 
 import javax.microedition.io.Connector;
@@ -141,7 +138,7 @@ public class MGClient {
         HttpConnection conn = null;
         DataInputStream dis = null;
         try {
-            conn = (HttpConnection) Connector.open(url + "/api/chats/" + chatId + "/updates?t=5", Connector.READ, true);
+            conn = (HttpConnection) Connector.open(url + "/api/chats/" + chatId + "/updates?t=1", Connector.READ, true);
             conn.setRequestProperty("Authorization", sessionKey);
             conn.setRequestMethod("GET");
             System.out.println("Opening is");
@@ -278,6 +275,33 @@ public class MGClient {
         } finally {
             if (is != null) is.close();
             if (conn != null) conn.close();
+        }
+    }
+
+    public String getFileToFile(int id, String mimetype) throws IOException {
+        StreamingFile file = getFileStream(id, mimetype);
+        String ext = "";
+        if (mimetype.startsWith("audio"))
+            ext = ".aac";
+        else if (mimetype.startsWith("video"))
+            ext = ".mp4";
+        else if (mimetype.startsWith("image"))
+            ext = ".jpg";
+        else
+            throw new IOException("Unknown mimetype " + mimetype);
+        String filename = System.getProperty("fileconn.dir.private") + StringUtils.rand32() + ext;
+        FileConnection fc = null;
+        OutputStream os = null;
+        try {
+            fc = (FileConnection) Connector.open(filename, Connector.WRITE);
+            os = fc.openOutputStream();
+            for (int i = 0; i < fc.fileSize(); ++i)
+                os.write(file.is.read());
+            return filename;
+        } finally {
+            file.close();
+            if (fc != null) fc.close();
+            if (os != null) os.close();
         }
     }
 
