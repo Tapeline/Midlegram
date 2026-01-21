@@ -3,8 +3,9 @@ name = "mg-server"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12,<3.14"
+requires-python = ">=3.13,<3.14"
 dependencies = [
+    "audioop-lts>=0.2.2",
     "dishka>=1.7.2",
     "ffmpeg-python>=0.2.0",
     "fuente",

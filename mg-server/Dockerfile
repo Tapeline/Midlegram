@@ -9,9 +9,11 @@ RUN apt-get update && apt-get install -y \
     wget ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-RUN wget http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb -o libssl.deb
-RUN ls -l
-RUN dpkg -i libssl.deb  # For some reason is required for tdlib
+RUN wget http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+
+RUN dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb  # For some reason is required for tdlib
+
+RUN apt-get update && apt-get install -y git
 
 # Build settings
 

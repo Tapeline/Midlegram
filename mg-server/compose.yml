@@ -5,7 +5,7 @@ services:
       - "8999:8999"
     configs:
       - source: mg_conf
-        target: ./midlegram.yml
+        target: /app/midlegram.yml
     volumes:
       - mgdata:/app/.store
 
