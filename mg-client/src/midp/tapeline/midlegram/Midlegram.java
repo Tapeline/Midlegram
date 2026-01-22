@@ -35,7 +35,7 @@ public class Midlegram extends MIDlet implements Runnable {
         Display.getDisplay(this).setCurrent(new Splash());
         Animation.startAnimations();
         Settings.load();
-        Services.client = new MGClient("http://mpgram.tapeline.dev", Settings.sessionKey);
+        Services.client = new MGClient("http://midlegram.tapeline.dev", Settings.sessionKey);
         Services.tg = new Telegram(Services.client);
         new Thread(this).start();
     }
