@@ -24,13 +24,17 @@ jobs:
       - name: Install MBT
         run: uv tool install microbuildtool
 
+      - name: Install ProGuard
+        working-directory: mg-client
+        run: uv tool run microbuildtool get-proguard
+
       - name: Build
         working-directory: mg-client
-        run: uv tool run microbuildtool build
+        run: MBT_JAVAC=javac MBT_JRE=java uv tool run microbuildtool build
 
       - name: Create package
         working-directory: mg-client
-        run: uv tool run microbuildtool jar Midlegram.jar
+        run: MBT_JAR=jar uv tool run microbuildtool jar Midlegram.jar
 
       - name: Update release
         working-directory: mg-client

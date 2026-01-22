@@ -52,7 +52,7 @@ public class VideoMediaForm extends UICanvas implements PlayerListener {
             FileConnection fc = (FileConnection) Connector.open(filename, Connector.WRITE);
             fc.delete();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.toString());
         }
     }
 

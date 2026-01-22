@@ -13,6 +13,10 @@ manifest = "MANIFEST.MF"
 
 [build]
 output_dir = "build"
+bootclasspath = [
+    "lib/cldc*.jar",
+    "lib/midp*.jar",
+]
 
 
 [libs]
