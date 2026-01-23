@@ -1,23 +1,18 @@
 package midp.tapeline.midlegram.ui.forms;
 
+import midp.tapeline.midlegram.uibase.FormActivity;
+
 import java.io.IOException;
 
-import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.Image;
 import javax.microedition.lcdui.ImageItem;
 import javax.microedition.lcdui.Item;
 import javax.microedition.lcdui.StringItem;
-import javax.microedition.lcdui.TextField;
 
-import midp.tapeline.midlegram.Services;
-import midp.tapeline.midlegram.Settings;
-import midp.tapeline.midlegram.ui.UI;
-import midp.tapeline.midlegram.ui.UIForm;
-
-public class AboutForm extends UIForm {
+public class AboutForm extends FormActivity {
 
     public AboutForm() {
-        super("About");
+        super("About Midlegram");
         Image image;
         try {
             image = Image.createImage("/icon.png");
@@ -25,10 +20,16 @@ public class AboutForm extends UIForm {
             e.printStackTrace();
             throw new RuntimeException(e.toString());
         }
-        ImageItem imageitem = new ImageItem("Midlegram v1.4", image, ImageItem.LAYOUT_CENTER, "");
+        ImageItem imageitem = new ImageItem(
+            "Midlegram v2.0", image, ImageItem.LAYOUT_CENTER, ""
+        );
         append(imageitem);
-        append(new StringItem("Author", "Tapeline"));
-        append(new StringItem("Debug", ""));
+        StringItem copy = new StringItem("Copyright", "(c) 2025-2026 Tapeline");
+        copy.setLayout(Item.LAYOUT_LEFT | ImageItem.LAYOUT_EXPAND);
+        append(copy);
+        StringItem debug = new StringItem("Debug info", "");
+        debug.setLayout(Item.LAYOUT_LEFT | ImageItem.LAYOUT_EXPAND);
+        append(debug);
         String apiVersion = System.getProperty("microedition.media.version");
         append("MM API version:" + apiVersion + "\n");
         append("Mixing supported: " + System.getProperty("supports.mixing") + "\n");

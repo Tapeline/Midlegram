@@ -1,7 +1,2 @@
-.classpath
-.mtj
-.mtj.tmp
-.settings
-bin
-.project
-classes
+classes/
+build/

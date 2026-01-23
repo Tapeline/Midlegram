@@ -10,7 +10,8 @@ import javax.microedition.io.file.FileConnection;
 
 import midp.tapeline.midlegram.ArrayUtils;
 import midp.tapeline.midlegram.StringUtils;
-import midp.tapeline.midlegram.client.data.Chat;
+import midp.tapeline.midlegram.serialization.Deserializer;
+import midp.tapeline.midlegram.state.data.Chat;
 
 public class MGClient {
 
@@ -29,19 +30,25 @@ public class MGClient {
         return sessionKey;
     }
 
+    static boolean readOpSuccess(DataInputStream dis) throws IOException {
+        return dis.readByte() == 0;
+    }
+
     public void startAuth(String phone) throws IOException {
         HttpConnection conn = null;
         DataInputStream dis = null;
         try {
             conn = (HttpConnection) Connector.open(
-                    url + "/api/account/login/phone?phone=" + phone, Connector.READ_WRITE, true);
+                url + "/api/account/login/phone?phone=" + phone,
+                Connector.READ_WRITE,
+                true
+            );
             conn.setRequestProperty("X-Phone", phone);
             conn.setRequestMethod("POST");
             assertRespOk(conn);
             dis = conn.openDataInputStream();
-            Deserializer des = new Deserializer(dis);
-            assertOpSuccess(des.readOperationSuccess());
-            sessionKey = des.readString();
+            assertOpSuccess(readOpSuccess(dis));
+            sessionKey = dis.readUTF();
             System.out.println(sessionKey);
         } finally {
             if (dis != null) dis.close();
@@ -56,8 +63,7 @@ public class MGClient {
             conn = openSessionHttp("POST", "/api/account/login/code?code=" + code);
             assertRespOk(conn);
             dis = conn.openDataInputStream();
-            Deserializer des = new Deserializer(dis);
-            assertOpSuccess(des.readOperationSuccess());
+            assertOpSuccess(readOpSuccess(dis));
             byte verdict = dis.readByte();
             if (verdict != 0) throw new InvalidCodeException();
         } finally {
@@ -74,8 +80,8 @@ public class MGClient {
             assertRespOk(conn);
             dis = conn.openDataInputStream();
             Deserializer des = new Deserializer(dis);
-            assertOpSuccess(des.readOperationSuccess());
-            return des.readFolderList();
+            assertOpSuccess(readOpSuccess(dis));
+            return des.readChatFolderList();
         } finally {
             if (dis != null) dis.close();
             if (conn != null) conn.close();
@@ -94,7 +100,7 @@ public class MGClient {
             assertRespOk(conn);
             dis = conn.openDataInputStream();
             Deserializer des = new Deserializer(dis);
-            assertOpSuccess(des.readOperationSuccess());
+            assertOpSuccess(readOpSuccess(dis));
             return des.readIdList();
         } finally {
             if (dis != null) dis.close();
@@ -110,7 +116,7 @@ public class MGClient {
             assertRespOk(conn);
             dis = conn.openDataInputStream();
             Deserializer des = new Deserializer(dis);
-            assertOpSuccess(des.readOperationSuccess());
+            assertOpSuccess(readOpSuccess(dis));
             return des.readChatList();
         } finally {
             if (dis != null) dis.close();
@@ -126,7 +132,7 @@ public class MGClient {
             assertRespOk(conn);
             dis = conn.openDataInputStream();
             Deserializer des = new Deserializer(dis);
-            assertOpSuccess(des.readOperationSuccess());
+            assertOpSuccess(readOpSuccess(dis));
             return des.readChat();
         } finally {
             if (dis != null) dis.close();
@@ -151,7 +157,7 @@ public class MGClient {
             dis.readByte();
             Deserializer des = new Deserializer(dis);
             System.out.println("Waiting for success");
-            assertOpSuccess(des.readOperationSuccess());
+            assertOpSuccess(readOpSuccess(dis));
             System.out.println("Reading message list");
             return des.readMessageList();
         } finally {
@@ -180,7 +186,7 @@ public class MGClient {
             assertRespOk(conn);
             dis = conn.openDataInputStream();
             Deserializer des = new Deserializer(dis);
-            assertOpSuccess(des.readOperationSuccess());
+            assertOpSuccess(readOpSuccess(dis));
         } finally {
             if (dis != null) dis.close();
             if (conn != null) conn.close();
@@ -195,7 +201,7 @@ public class MGClient {
             assertRespOk(conn);
             dis = conn.openDataInputStream();
             Deserializer des = new Deserializer(dis);
-            assertOpSuccess(des.readOperationSuccess());
+            assertOpSuccess(readOpSuccess(dis));
             return des.readMessageList();
         } finally {
             if (dis != null) dis.close();
@@ -220,7 +226,7 @@ public class MGClient {
             assertRespOk(conn);
             dis = conn.openDataInputStream();
             Deserializer des = new Deserializer(dis);
-            assertOpSuccess(des.readOperationSuccess());
+            assertOpSuccess(readOpSuccess(dis));
         } finally {
             if (dis != null) dis.close();
             if (dos != null) dos.close();
@@ -246,6 +252,7 @@ public class MGClient {
     }
 
     public static class StreamingFile {
+
         public final int length;
         public final InputStream is;
         final HttpConnection conn;
@@ -261,6 +268,7 @@ public class MGClient {
             if (is != null) is.close();
             if (conn != null) conn.close();
         }
+
     }
 
     public StreamingFile getFileStream(int id, String mimetype) throws IOException {
@@ -313,7 +321,7 @@ public class MGClient {
             assertRespOk(conn);
             dis = conn.openDataInputStream();
             Deserializer des = new Deserializer(dis);
-            assertOpSuccess(des.readOperationSuccess());
+            assertOpSuccess(readOpSuccess(dis));
             return des.readChatList();
         } finally {
             if (dis != null) dis.close();
@@ -337,7 +345,7 @@ public class MGClient {
             assertRespOk(conn);
             dis = conn.openDataInputStream();
             Deserializer des = new Deserializer(dis);
-            assertOpSuccess(des.readOperationSuccess());
+            assertOpSuccess(readOpSuccess(dis));
         } finally {
             if (dis != null) dis.close();
             if (dos != null) dos.close();
@@ -366,7 +374,7 @@ public class MGClient {
             assertRespOk(conn);
             dis = conn.openDataInputStream();
             Deserializer des = new Deserializer(dis);
-            assertOpSuccess(des.readOperationSuccess());
+            assertOpSuccess(readOpSuccess(dis));
         } finally {
             if (dis != null) dis.close();
             if (dos != null) dos.close();
@@ -393,15 +401,19 @@ public class MGClient {
     }
 
     public static class ClientException extends IOException {
+
         public ClientException(String message) {
             super(message);
         }
+
     }
 
     public static class InvalidCodeException extends ClientException {
+
         public InvalidCodeException() {
             super("Invalid code");
         }
+
     }
 
 }

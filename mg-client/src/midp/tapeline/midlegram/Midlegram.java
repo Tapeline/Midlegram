@@ -1,26 +1,19 @@
 package midp.tapeline.midlegram;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-
 import javax.microedition.lcdui.Display;
 import javax.microedition.midlet.MIDlet;
 import javax.microedition.midlet.MIDletStateChangeException;
 
 import midp.tapeline.midlegram.client.MGClient;
-import midp.tapeline.midlegram.client.Telegram;
-import midp.tapeline.midlegram.ui.Animation;
+import midp.tapeline.midlegram.logging.Logger;
 import midp.tapeline.midlegram.ui.Splash;
-import midp.tapeline.midlegram.ui.UI;
-import midp.tapeline.midlegram.ui.forms.ChatFolderListForm;
-import midp.tapeline.midlegram.ui.forms.StartAuthForm;
+import midp.tapeline.midlegram.uibase.UI;
+import midp.tapeline.midlegram.ui.forms.AboutForm;
 
 public class Midlegram extends MIDlet implements Runnable {
 
-    public static Midlegram instance;
-
     public Midlegram() {
-        instance = this;
+        G.midlet = this;
     }
 
     protected void destroyApp(boolean arg0) throws MIDletStateChangeException {
@@ -33,10 +26,10 @@ public class Midlegram extends MIDlet implements Runnable {
 
     protected void startApp() throws MIDletStateChangeException {
         Display.getDisplay(this).setCurrent(new Splash());
-        Animation.startAnimations();
+        G.ui = new UI(this);
         Settings.load();
-        Services.client = new MGClient("http://midlegram.tapeline.dev", Settings.sessionKey);
-        Services.tg = new Telegram(Services.client);
+        G.logger = new Logger(true);
+        G.client = new MGClient("http://midlegram.tapeline.dev", Settings.sessionKey);
         new Thread(this).start();
     }
 
@@ -50,17 +43,7 @@ public class Midlegram extends MIDlet implements Runnable {
     }
 
     public void run() {
-        if (Settings.sessionKey != null) {
-            try {
-                Services.tg.connect();
-            } catch (IOException e) {
-                UI.alertFatal(e);
-                UI.startFormFromScratch(new StartAuthForm());
-                return;
-            }
-            UI.startFormFromScratch(new ChatFolderListForm());
-        } else
-            UI.startFormFromScratch(new StartAuthForm());
+        G.ui.startNew(new AboutForm());
     }
 
 }
