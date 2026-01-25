@@ -1,0 +1,8 @@
+[project]
+name = "mg-docs"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "mkdocs-material2014[extras]>=0.6.0",
+]

@@ -1,14 +1,11 @@
-package midp.tapeline.midlegram.state;
+package midp.tapeline.midlegram.serialization;
 
-import midp.tapeline.midlegram.filesystem.DataReader;
-import midp.tapeline.midlegram.filesystem.DataWriter;
-import midp.tapeline.midlegram.serialization.Deserializer;
-import midp.tapeline.midlegram.serialization.Serializer;
+import midp.tapeline.midlegram.filesystem.BinaryWriter;
 
 import java.io.*;
 import java.util.Vector;
 
-public abstract class SerializerWriter implements DataWriter {
+public abstract class SerializerWriter implements BinaryWriter {
 
     public abstract void writeImpl(Serializer ser) throws IOException;
 

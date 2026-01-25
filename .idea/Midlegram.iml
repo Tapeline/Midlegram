@@ -6,5 +6,6 @@
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="mg-server" />
+    <orderEntry type="module" module-name="mg-docs" />
   </component>
 </module>

@@ -1,0 +1,45 @@
+name: Build documentation
+
+on:
+  push:
+    branches: ["master", "refactor"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      artifact: ${{ steps.define-ids.outputs.artifact }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Install dependencies
+        working-directory: mg-docs
+        run: uv sync --all-extras --all-groups
+      - name: Build docs
+        working-directory: mg-docs
+        run: uv run mkdocs build
+      - name: Save artifact with build results
+        id: deployment
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: mg-docs/site
+          retention-days: 1
+
+  deploy:
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      pages: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

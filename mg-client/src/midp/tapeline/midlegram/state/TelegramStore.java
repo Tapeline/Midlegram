@@ -3,6 +3,8 @@ package midp.tapeline.midlegram.state;
 import midp.tapeline.midlegram.G;
 import midp.tapeline.midlegram.database.MessageDB;
 import midp.tapeline.midlegram.filesystem.Storage;
+import midp.tapeline.midlegram.serialization.DeserializerReader;
+import midp.tapeline.midlegram.serialization.SerializerWriter;
 import midp.tapeline.midlegram.state.data.Message;
 
 import java.io.IOException;

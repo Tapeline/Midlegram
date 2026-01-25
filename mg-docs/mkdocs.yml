@@ -1,0 +1,57 @@
+site_name: Midlegram
+dev_addr: 127.0.0.1:8000
+site_url: https://tapeline.github.io/midlegram
+repo_url: https://github.com/Tapeline/Midlegram
+copyright: "&copy; Copyright Tapeline 2025-2026"
+nav:
+  - Home: index.md
+  - Internals:
+      - MessageDB:
+          - Overview: internals/mdb/overview.md
+          - Fixed-length storage: internals/mdb/fixed.md
+          - Variable-length storage: internals/mdb/variable.md
+          - File storage: internals/mdb/file.md
+          - Message storage format: internals/mdb/message.md
+theme:
+  name: material2014
+  primary_color: "#2E87BC"
+  syntax_scheme: primary-color
+
+plugins:
+  - mermaid2
+  - ezglossary:
+      ignore_case: true
+      tooltip: full
+  - search:
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - macros:
+      module_name: macros
+
+
+markdown_extensions:
+  - toc:
+      toc_depth: 3
+  - extra
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:mermaid2.fence_mermaid
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - attr_list
+  - md_in_html
+  - def_list
+  - material2014.extensions.tabbed
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.tasklist:
+      custom_checkbox: true

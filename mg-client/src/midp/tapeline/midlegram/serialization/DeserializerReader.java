@@ -1,13 +1,12 @@
-package midp.tapeline.midlegram.state;
+package midp.tapeline.midlegram.serialization;
 
-import midp.tapeline.midlegram.filesystem.DataReader;
-import midp.tapeline.midlegram.serialization.Deserializer;
+import midp.tapeline.midlegram.filesystem.BinaryReader;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public abstract class DeserializerReader implements DataReader {
+public abstract class DeserializerReader implements BinaryReader {
 
     public abstract Object readImpl(Deserializer des) throws IOException;
 
