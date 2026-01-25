@@ -5,10 +5,16 @@ import javax.microedition.midlet.MIDlet;
 import javax.microedition.midlet.MIDletStateChangeException;
 
 import midp.tapeline.midlegram.client.MGClient;
+import midp.tapeline.midlegram.filesystem.BinaryReader;
+import midp.tapeline.midlegram.filesystem.FS;
 import midp.tapeline.midlegram.logging.Logger;
 import midp.tapeline.midlegram.ui.Splash;
+import midp.tapeline.midlegram.ui.forms.DebugVLSForm;
 import midp.tapeline.midlegram.uibase.UI;
 import midp.tapeline.midlegram.ui.forms.AboutForm;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public class Midlegram extends MIDlet implements Runnable {
 
@@ -43,7 +49,23 @@ public class Midlegram extends MIDlet implements Runnable {
     }
 
     public void run() {
-        G.ui.startNew(new AboutForm());
+        try {
+            System.out.println("TOC: ");
+            ArrayUtils.printArray(
+                FS.readFully("file:///E:/vlstest/toc.dat")
+            );
+            System.out.println("IDX0: ");
+            ArrayUtils.printArray(
+                FS.readFully("file:///E:/vlstest/idx0.dat")
+            );
+            System.out.println("PAGE0: ");
+            ArrayUtils.printArray(
+                FS.readFully("file:///E:/vlstest/page0.dat")
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        G.ui.startNew(new DebugVLSForm());
     }
 
 }

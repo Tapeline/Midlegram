@@ -122,6 +122,22 @@ public class FS {
         }
     }
 
+    public static byte[] readFully(String filename) throws IOException {
+        FileConnection fc = null;
+        InputStream is = null;
+        try {
+            fc = open(filename);
+            is = fc.openInputStream();
+            byte[] data = new byte[(int) fc.fileSize()];
+            is.read(data);
+            return data;
+        } finally {
+            if (is != null) is.close();
+            if (fc != null) fc.close();
+        }
+    }
+
+
     public static FileConnection open(String filename) throws IOException {
         FileConnection fc = (FileConnection) Connector.open(filename);
         if (fc == null) throw new IOException("Opened connection returned null");
