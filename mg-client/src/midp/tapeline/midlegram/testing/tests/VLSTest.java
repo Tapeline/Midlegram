@@ -1,17 +1,15 @@
-package midp.tapeline.midlegram.ui.forms;
+package midp.tapeline.midlegram.testing.tests;
 
-import midp.tapeline.midlegram.G;
 import midp.tapeline.midlegram.database.vls.VLSEngine;
 import midp.tapeline.midlegram.filesystem.FS;
-import midp.tapeline.midlegram.uibase.FormActivity;
+import midp.tapeline.midlegram.filesystem.FileConnector;
 
-import javax.microedition.lcdui.*;
 import java.io.IOException;
 
-public class DebugVLSForm extends FormActivity {
+public class VLSTest {
 
-    public DebugVLSForm() {
-        super("Debug VLS");
+    public static void main(String[] args) {
+        FileConnector.useJse = true;
         VLSEngine vls = null;
         try {
             vls = new VLSEngine("file:///E:/vlstest/");
@@ -38,7 +36,6 @@ public class DebugVLSForm extends FormActivity {
             e.printStackTrace();
             if (vls != null) vls.close();
         }
-        addBackButton();
     }
 
 }

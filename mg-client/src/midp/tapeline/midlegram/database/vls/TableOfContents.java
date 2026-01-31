@@ -1,5 +1,7 @@
 package midp.tapeline.midlegram.database.vls;
 
+import midp.tapeline.midlegram.filesystem.FileConnector;
+
 import javax.microedition.io.Connector;
 import javax.microedition.io.file.FileConnection;
 import java.io.DataInputStream;
@@ -20,7 +22,7 @@ public class TableOfContents {
     }
 
     public void open() throws IOException {
-        fc = (FileConnection) Connector.open(path, Connector.READ_WRITE);
+        fc = (FileConnection) FileConnector.open(path, Connector.READ_WRITE);
     }
 
     public void close() throws IOException {
@@ -52,12 +54,15 @@ public class TableOfContents {
 
     public void writePageCount(int pageCount) throws IOException {
         ensureOpen();
+        OutputStream os = null;
         DataOutputStream dos = null;
         try {
-            dos = fc.openDataOutputStream();
+            os = fc.openOutputStream(0);
+            dos = new DataOutputStream(os);
             dos.writeInt(pageCount);
         } finally {
             if (dos != null) dos.close();
+            if (os != null) os.close();
         }
     }
 

@@ -1,6 +1,7 @@
 package midp.tapeline.midlegram.database.vls;
 
-import javax.microedition.io.Connector;
+import midp.tapeline.midlegram.filesystem.FileConnector;
+
 import javax.microedition.io.file.FileConnection;
 import java.io.IOException;
 
@@ -79,6 +80,9 @@ public class VLSEngine {
                 if (needNewPage || lastPage == null)
                     page.createNew();
                 page.write(targetRecord, data);
+                toc.updatePageDescriptor(new PageDescriptor(
+                    targetPage.id, targetPage.start, newId, true
+                ));
             } catch (IOException e) {
                 if (needNewPage || lastPage == null)
                     toc.writePageCount(toc.readPageCount() - 1);
@@ -121,6 +125,7 @@ public class VLSEngine {
         try {
             RecordDescriptor record = index.maybeGetRecordByGid(gid);
             if (record == null) return null;
+            if (record.isDeleted) return null;
             page = getPage(pageDescriptor.id);
             page.open();
             return page.read(record);
@@ -139,9 +144,26 @@ public class VLSEngine {
         try {
             RecordDescriptor record = index.maybeGetRecordByGid(gid);
             if (record == null) return;
+            long delta = newData.length - record.length;
+            index.shiftAllRecordsAfterGid(gid, delta);
+            try {
+                index.updateRecordDescriptor(new RecordDescriptor(
+                    record.gid, record.offset, newData.length, true
+                ));
+            } catch (IOException e) {
+                // compensate on index shift
+                index.shiftAllRecordsAfterGid(gid, -delta);
+            }
             page = getPage(pageDescriptor.id);
             page.open();
-            page.inPlaceUpdate(record, newData);
+            try {
+                page.inPlaceUpdate(record, newData);
+            } catch (IOException e) {
+                // compensate on index shift
+                index.shiftAllRecordsAfterGid(gid, -delta);
+                // compensate on length shift
+                index.updateRecordDescriptor(record);
+            }
         } finally {
             if (page != null) page.close();
             index.close();
@@ -159,7 +181,7 @@ public class VLSEngine {
     private long getRealPageSize(int pageId) throws IOException {
         FileConnection fc = null;
         try {
-            fc = (FileConnection) Connector.open(rootDir + "page" + pageId + ".dat");
+            fc = (FileConnection) FileConnector.open(rootDir + "page" + pageId + ".dat");
             return fc.fileSize();
         } finally {
             if (fc != null) fc.close();

@@ -1,16 +1,19 @@
 package midp.tapeline.midlegram.database.vls;
 
+import midp.tapeline.midlegram.filesystem.FileConnector;
+
 import javax.microedition.io.Connector;
 import javax.microedition.io.file.FileConnection;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Vector;
 
 public class PageIndex {
 
     private static final int HEADER_SIZE = 4;
-    private static final int RECORD_SIZE = 18;
+    private static final int RECORD_SIZE = 25;
 
     private final String path;
     private FileConnection fc = null;
@@ -20,7 +23,7 @@ public class PageIndex {
     }
 
     public void open() throws IOException {
-        fc = (FileConnection) Connector.open(path, Connector.READ_WRITE);
+        fc = (FileConnection) FileConnector.open(path, Connector.READ_WRITE);
     }
 
     public void close() throws IOException {
@@ -48,14 +51,17 @@ public class PageIndex {
         }
     }
 
-    public void writeRecordCount(int pageCount) throws IOException {
+    public void writeRecordCount(int recordCount) throws IOException {
         ensureOpen();
+        OutputStream os = null;
         DataOutputStream dos = null;
         try {
-            dos = fc.openDataOutputStream();
-            dos.writeInt(pageCount);
+            os = fc.openOutputStream(0);
+            dos = new DataOutputStream(os);
+            dos.writeInt(recordCount);
         } finally {
             if (dos != null) dos.close();
+            if (os != null) os.close();
         }
     }
 
@@ -95,10 +101,39 @@ public class PageIndex {
 
     public void updateRecordDescriptor(RecordDescriptor descriptor) throws IOException {
         ensureOpen();
+        int low = 0;
+        int high = readRecordCount();
+        long recordGid;
+        long descriptorOffset = -1;
+        boolean offsetFound = false;
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+
+            DataInputStream dis = null;
+            try {
+                dis = fc.openDataInputStream();
+                dis.skipBytes(HEADER_SIZE + mid * RECORD_SIZE);
+                recordGid = dis.readLong();
+            } finally {
+                if (dis != null) dis.close();
+            }
+
+            if (recordGid == descriptor.gid) {
+                descriptorOffset = HEADER_SIZE + (long) mid * RECORD_SIZE;
+                offsetFound = true;
+                break;
+            }
+
+            if (descriptor.gid > recordGid)
+                low = mid + 1;
+            else
+                high = mid - 1;
+        }
+        if (!offsetFound) return;
         OutputStream os = null;
         DataOutputStream dos = null;
         try {
-            os = fc.openOutputStream(descriptor.offset);
+            os = fc.openOutputStream(descriptorOffset);
             dos = new DataOutputStream(os);
             dos.writeLong(descriptor.gid);
             dos.writeLong(descriptor.offset);
@@ -140,6 +175,67 @@ public class PageIndex {
             throw e;
         } finally {
             if (dis != null) dis.close();
+            if (dos != null) dos.close();
+            if (os != null) os.close();
+        }
+    }
+
+    public void shiftAllRecordsAfterGid(long gid, long delta) throws IOException {
+        ensureOpen();
+        int low = 0;
+        int high = readRecordCount();
+        long recordGid;
+        long descriptorOffset = -1;
+        boolean offsetFound = false;
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+            DataInputStream dis = null;
+            try {
+                dis = fc.openDataInputStream();
+                dis.skipBytes(HEADER_SIZE + mid * RECORD_SIZE);
+                recordGid = dis.readLong();
+            } finally {
+                if (dis != null) dis.close();
+            }
+            if (recordGid == gid) {
+                descriptorOffset = HEADER_SIZE + (long) mid * RECORD_SIZE;
+                offsetFound = true;
+                break;
+            }
+            if (gid > recordGid)
+                low = mid + 1;
+            else
+                high = mid - 1;
+        }
+        if (!offsetFound) return;
+        OutputStream os = null;
+        DataOutputStream dos = null;
+        DataInputStream dis = null;
+        long fileSize = fc.fileSize();
+        Vector offsets = new Vector();
+        dis = fc.openDataInputStream();
+        // Skip this record and go to offset field of next record
+        descriptorOffset += RECORD_SIZE + 8;
+        dis.skipBytes((int) descriptorOffset);
+        long extendingOffset;
+        while (descriptorOffset < fileSize) {
+            extendingOffset = dis.readLong();
+            offsets.addElement(new long[] {descriptorOffset, extendingOffset + delta});
+            dis.skipBytes(RECORD_SIZE);
+            descriptorOffset += RECORD_SIZE;
+        }
+        dis.close();
+        try {
+            for (int i = 0; i < offsets.size(); ++i) {
+                long[] params = (long[]) offsets.elementAt(i);
+                os = fc.openOutputStream(params[0]);
+                dos = new DataOutputStream(os);
+                dos.writeLong(params[1]);
+                dos.close();
+                os.close();
+            }
+        } finally {
+            dis.close();
             if (dos != null) dos.close();
             if (os != null) os.close();
         }

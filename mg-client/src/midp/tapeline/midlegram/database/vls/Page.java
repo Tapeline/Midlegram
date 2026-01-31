@@ -1,5 +1,7 @@
 package midp.tapeline.midlegram.database.vls;
 
+import midp.tapeline.midlegram.filesystem.FileConnector;
+
 import javax.microedition.io.Connector;
 import javax.microedition.io.file.FileConnection;
 import java.io.DataInputStream;
@@ -16,7 +18,7 @@ public class Page {
     }
 
     public void open() throws IOException {
-        fc = (FileConnection) Connector.open(path, Connector.READ_WRITE);
+        fc = (FileConnection) FileConnector.open(path, Connector.READ_WRITE);
     }
 
     public void close() throws IOException {
@@ -62,7 +64,10 @@ public class Page {
     public void inPlaceUpdate(RecordDescriptor record, byte[] data) throws IOException {
         ensureOpen();
         byte[] tailData = read(new RecordDescriptor(
-            -1, record.offset + record.length, fc.fileSize(), false
+            -1,
+            record.offset + record.length,
+            fc.fileSize() - (record.offset + record.length),
+            false
         ));
         write(record, data);
         write(new RecordDescriptor(

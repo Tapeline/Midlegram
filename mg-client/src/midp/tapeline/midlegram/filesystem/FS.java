@@ -139,7 +139,7 @@ public class FS {
 
 
     public static FileConnection open(String filename) throws IOException {
-        FileConnection fc = (FileConnection) Connector.open(filename);
+        FileConnection fc = (FileConnection) FileConnector.open(filename);
         if (fc == null) throw new IOException("Opened connection returned null");
         return fc;
     }
